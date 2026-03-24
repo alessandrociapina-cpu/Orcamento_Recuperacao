@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Documentação - Orçamento OVMS</title>
+  <link rel="stylesheet" href="style.css?v=16">
+  <style>
+    .doc-container {
+      max-width: 850px;
+      margin: 40px auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      line-height: 1.6;
+      color: #333;
+    }
+    .doc-container h2 { text-align: center; color: #007bff; margin-top: 0; border-bottom: 2px solid #eee; padding-bottom: 15px; }
+    .doc-container h4 { color: #333; border-bottom: 1px solid #ddd; padding-bottom: 5px; margin-top: 30px; }
+    .doc-container ul { padding-left: 20px; }
+    .doc-container li { margin-bottom: 8px; }
+    .doc-container p { text-align: justify; }
+  </style>
+</head>
+<body style="background-color: #f4f4f4;">
+  <div class="doc-container">
+    <h2>📄 Documentação Técnica e Arquitetural (v16)</h2>
+    
+    <p>O <strong>Gerador de Orçamento de Recuperação Estrutural e Umidade</strong> foi desenvolvido com base em princípios rigorosos de segurança da informação, operando integralmente como uma aplicação descentralizada (<em>Client-Side</em> e <em>Offline-First</em>). Esta arquitetura foi escolhida especificamente para contornar limitações severas de proxy e firewall presentes em redes corporativas críticas, garantindo a produtividade da engenharia técnica no campo.</p>
+
+    <h4>A. Processamento de Dados (Zero-Server Architecture)</h4>
+    <p>Diferente de sistemas web convencionais, o aplicativo não requer envio de imagens ou rascunhos para servidores em nuvem. Todo o ciclo de vida dos dados ocorre estritamente dentro da memória RAM local do dispositivo do utilizador.</p>
+
+    <h4>B. Prevenção de Perda de Dados em Campo (IndexedDB)</h4>
+    <p>O aplicativo embute um módulo assíncrono de persistência contínua (Auto-Save). A cada interação, a estrutura inteira de dados do utilizador e as imagens em Base64 são "congeladas" no banco de dados NoSQL do próprio navegador (<strong>IndexedDB</strong>).</p>
+
+    <h4>C. Sincronização Automática SINPLAN e Offline</h4>
+    <p>A aplicação atua como um <strong>PWA (Progressive Web App)</strong> governada por um <em>Service Worker</em>. No primeiro acesso com ligação à internet, o sistema realiza o <code>fetch</code> do banco de preços <strong>SINPLAN</strong> embutido no repositório (via JSON UTF-8) e armazena na memória persistente.</p>
+    
+    <div style="text-align: center; margin-top: 40px;">
+      <button onclick="window.close()" class="botao-secundario" style="background-color: #6c757d; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">Fechar Separador</button>
+    </div>
+  </div>
+</body>
+</html>

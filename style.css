@@ -1,0 +1,66 @@
+/* Atualizado para a v16 */
+body { font-family: Arial, sans-serif; line-height: 1.6; margin: 0; padding: 20px; background-color: #f4f4f4; color: #333; }
+.container { max-width: 900px; margin: auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+h1, h2 { color: #333; text-align: center; margin-bottom: 20px; }
+hr { margin: 30px 0; border: 0; border-top: 1px solid #ddd; }
+
+.info-tooltip-container { position: relative; display: inline-block; cursor: pointer; margin-left: 5px; outline: none; }
+.info-icon { font-size: 1.1em; color: #007bff; transition: transform 0.2s; display: inline-block; }
+.info-tooltip-container:hover .info-icon { transform: scale(1.1); }
+.info-tooltip-text {
+  visibility: hidden; width: 280px; background-color: #343a40; color: #fff; text-align: left;
+  border-radius: 6px; padding: 12px; position: absolute; z-index: 1001;
+  top: 150%; left: 50%; transform: translateX(-50%); opacity: 0; transition: opacity 0.3s;
+  font-size: 0.95em; box-shadow: 0 4px 12px rgba(0,0,0,0.2); pointer-events: none; line-height: 1.4;
+}
+.info-tooltip-text::after { content: ""; position: absolute; bottom: 100%; left: 50%; margin-left: -6px; border-width: 6px; border-style: solid; border-color: transparent transparent #343a40 transparent; }
+.info-tooltip-container:hover .info-tooltip-text, .info-tooltip-container:focus .info-tooltip-text { visibility: visible; opacity: 1; }
+
+.secao-projeto, .secao-entrada, .secao-fotos, .secao-orcamento, .secao-observacoes, .secao-acao, .secao-sinplan { margin-bottom: 30px; padding: 15px; border: 1px solid #e0e0e0; border-radius: 5px; background-color: #f9f9f9; }
+.secao-entrada h2, .secao-fotos h2, .secao-orcamento h2, .secao-observacoes h2, .secao-sinplan h2 { text-align: left; margin-top: 0; font-size: 1.2em; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+
+#form-vistoria div.campo-simples { margin-bottom: 15px; }
+#form-vistoria label { display: block; margin-bottom: 5px; font-weight: bold; }
+#form-vistoria input[type="text"], #form-vistoria input[type="date"], #form-vistoria input[type="time"], .input-select-largo, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-family: Arial, sans-serif; }
+.linha-dupla { display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap; }
+.campo-metade { flex: 1; min-width: 220px; }
+.caixa-assinatura { display: flex; flex-direction: column; background: #eef2f5; padding: 12px; border-radius: 4px; border: 1px solid #ced4da; margin-bottom: 15px; }
+
+.botao-principal, .botao-secundario { display: inline-block; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; text-align: center; margin-right: 8px; margin-bottom: 5px; }
+.botao-principal { background-color: #007bff; } .botao-principal:hover { background-color: #0056b3; }
+.botao-secundario { background-color: #6c757d; } .botao-secundario:hover { background-color: #5a6268; }
+.botao-texto { background: transparent; color: #007bff; border: none; cursor: pointer; text-decoration: underline; padding: 8px; }
+
+.tabela-responsiva table th { background: #007bff; color: white; text-align: center; }
+.tabela-responsiva table td, .tabela-responsiva table th { border: 1px solid #ddd; padding: 10px; }
+.tabela-responsiva table tr:nth-child(even) { background-color: #f2f2f2; }
+
+.modal-oculto { display: none !important; }
+#modalEditor { display: flex; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.8); justify-content: center; align-items: center; }
+.modal-conteudo { background-color: #fff; padding: 20px; border-radius: 8px; width: 95%; max-width: 900px; display: flex; flex-direction: column; align-items: center; }
+
+#area-relatorio { display: none; margin-top: 30px; padding: 20px; border: 1px solid #ccc; background-color: #fff; position: relative; }
+.cabecalho-principal { display: grid; grid-template-columns: 125px 1fr 125px; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 15px; margin-bottom: 15px; }
+.titulo-companhia { font-family: Tahoma, sans-serif; font-size: 12pt; font-weight: bold; color: #12D0FF; text-align: center; margin-bottom: 5px; }
+.titulo-vistoria { font-weight: bold; font-size: 18pt; color: #12D0FF; text-align: center; margin: 0; }
+.logo-relatorio-direito { max-width: 125px; max-height: 75px; justify-self: end; }
+.rodape-fixo-print { margin-top: 40px; width: 100%; background: #fff; }
+.rodape-container { border-top: 1.5px solid #12D0FF; padding-top: 8px; }
+.rodape-texto { font-family: Tahoma, sans-serif; font-weight: bold; font-size: 8pt; color: #12D0FF; text-align: left; }
+
+@media print {
+  body.preview-print { background-color: #fff !important; padding: 0 !important; }
+  body.preview-print .container { max-width: 100%; padding: 0 !important; margin: 0; box-shadow: none !important; border: none !important; }
+  
+  .secao-entrada, .secao-fotos, .secao-sinplan, .secao-orcamento > .cabecalho-orcamento-ui, .secao-observacoes, .secao-acao, .secao-projeto, body > .container > h1, .versao-info, #previewAssinatura { display: none !important; }
+  
+  #area-relatorio { border: none !important; padding: 0 !important; display: block !important; }
+  .rodape-fixo-print { position: fixed !important; bottom: 0 !important; left: 0 !important; width: 100% !important; z-index: 1000; }
+  .tabela-responsiva table th { color: #000 !important; background-color: #eee !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .cabecalho-principal { grid-template-columns: 31mm 1fr 31mm; border-bottom: 1px solid #ddd; }
+  
+  #inputBDI { border: none !important; background: transparent !important; font-size: inherit; font-family: inherit; font-weight: inherit; padding: 0 !important; width: auto !important; -webkit-appearance: none; }
+  .input-tabela-orcamento { border: none !important; background: transparent !important; box-shadow: none !important; padding: 0 !important; margin: 0 !important; font-family: inherit; color: inherit; font-size: inherit; text-align: inherit; -webkit-appearance: none; }
+  .input-tabela-orcamento::placeholder { color: transparent !important; }
+  .btn-remover-linha, .linha-add-extra { display: none !important; }
+}
