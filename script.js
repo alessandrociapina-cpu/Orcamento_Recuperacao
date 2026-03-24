@@ -20,7 +20,6 @@ document.addEventListener('DOMContentLoaded', () => {
   let fotoAtualCropIndex = null;
   let assinaturaBase64 = null;
 
-  // Carregamento de base de dados
   fetch('SINAPI_ATUALIZADO.json').then(r => r.json()).then(d => baseSinapi = d).catch(() => {
       fetch('SINPLAN_ATUALIZADO.json').then(r => r.json()).then(d => baseSinapi = d).catch(e => console.warn("Base offline."));
   });
@@ -125,7 +124,6 @@ document.addEventListener('DOMContentLoaded', () => {
           memorial: "1. Mobilização de equipamentos e monitoramento da estrutura.\n2. Escavação manual e escoramento para abertura de poço.\n3. Cravação de estacas mega de concreto por macacagem.\n4. Encunhamento e concretagem do bloco de transição.\n5. Recomposição arquitetônica e remoção de entulho.",
           unidadeBase: "un", fatorArea: 1.0, 
           composicao: [
-              // Bloqueado a busca da palavra estrita mobilização para não puxar Franki
               { desc: "Mobilização de equipamento leve (Macaco Hidráulico)", unid: "un", precoUnit: 350.00, busca: "mobilizacao macaco hidraulico", mult: 1 },
               { desc: "Escavação manual e escoramento de poço", unid: "un", precoUnit: 450.00, busca: "escavação manual", mult: 1 },
               { desc: "Cravação de Estaca Mega de concreto (estimado 10m)", unid: "m", precoUnit: 320.00, busca: "estaca mega", mult: 10 },
@@ -155,9 +153,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
   };
 
-  // =========================================================================
-  // SALVAMENTO OTIMIZADO COM DEBOUNCE (FIM DA LENTIDÃO/TRAVAMENTOS)
-  // =========================================================================
   let timeoutAutoSave;
   function autoSalvar() {
       const status = document.getElementById('statusAutoSave');
@@ -178,16 +173,11 @@ document.addEventListener('DOMContentLoaded', () => {
                   fotos: fotosSelecionadas
               };
               localStorage.setItem('projetoPatologiasSabesp', JSON.stringify(projeto));
-              
               status.style.color = 'green';
               status.innerText = 'Projeto salvo automaticamente ✔';
               setTimeout(() => status.innerText = '', 3000);
-          } catch(e) { 
-              console.error("Erro ao salvar", e); 
-              status.style.color = 'red';
-              status.innerText = 'Erro ao salvar (limite de memória)';
-          }
-      }, 1500); // Aguarda 1.5 segundos após a última digitação
+          } catch(e) { console.error("Erro", e); }
+      }, 1500); 
   }
 
   function carregarDoLocalStorage() {
@@ -210,15 +200,13 @@ document.addEventListener('DOMContentLoaded', () => {
                   fotosSelecionadas = p.fotos;
                   renderizarInterface();
               }
-          } catch(e) { console.error("Erro ao ler Auto-Save"); }
+          } catch(e) {}
       }
   }
   
   carregarDoLocalStorage();
 
-  document.querySelectorAll('input, select, textarea').forEach(el => {
-      el.addEventListener('change', autoSalvar);
-  });
+  document.querySelectorAll('input, select, textarea').forEach(el => el.addEventListener('change', autoSalvar));
 
   document.getElementById('btnSalvarProjeto').onclick = () => {
       const projeto = {
@@ -230,10 +218,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const blob = new Blob([JSON.stringify(projeto)], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
-      a.href = url;
-      a.download = `Orcamento_Patologias_${document.getElementById('localVistoria').value || 'Projeto'}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
+      a.href = url; a.download = `Orcamento_${document.getElementById('localVistoria').value || 'Projeto'}.json`; a.click(); URL.revokeObjectURL(url);
   };
 
   document.getElementById('inputCarregarProjeto').addEventListener('change', function(e) {
@@ -254,29 +239,22 @@ document.addEventListener('DOMContentLoaded', () => {
                   document.getElementById('btnRemoverAssinatura').style.display = 'inline-block';
               }
               if(p.fotos) { fotosSelecionadas = p.fotos; }
-              renderizarInterface();
-              autoSalvar();
-          } catch(err) { alert("Arquivo de projeto inválido ou corrompido."); }
+              renderizarInterface(); autoSalvar();
+          } catch(err) { alert("Arquivo de projeto inválido."); }
       };
       reader.readAsText(e.target.files[0]);
       e.target.value = '';
   });
 
   document.getElementById('btnNovoProjeto').onclick = () => {
-      if(confirm("Tem certeza? Isso apagará todas as fotos e dados não salvos. Use isso para iniciar um projeto do zero ou para atualizar os preços.")) {
+      if(confirm("Apagar tudo e limpar cache?")) {
           fotosSelecionadas = []; assinaturaBase64 = null;
-          document.getElementById('form-vistoria').reset();
-          document.getElementById('bdiGeral').value = "10.0";
-          document.getElementById('assinaturaStatus').style.display = 'none';
-          document.getElementById('btnRemoverAssinatura').style.display = 'none';
-          renderizarInterface();
-          localStorage.removeItem('projetoPatologiasSabesp');
+          document.getElementById('form-vistoria').reset(); document.getElementById('bdiGeral').value = "10.0";
+          document.getElementById('assinaturaStatus').style.display = 'none'; document.getElementById('btnRemoverAssinatura').style.display = 'none';
+          renderizarInterface(); localStorage.removeItem('projetoPatologiasSabesp');
       }
   };
 
-  // =========================================================================
-  // GESTÃO DE IMAGENS E INTERFACE
-  // =========================================================================
   inputSelecionarFotos.addEventListener('change', (e) => {
     const files = e.target.files;
     for(let file of files){
@@ -287,16 +265,10 @@ document.addEventListener('DOMContentLoaded', () => {
             img.onload = () => {
                 const cvs = document.createElement('canvas');
                 const ratio = img.width / img.height;
-                cvs.width = Math.min(img.width, 1200);
-                cvs.height = cvs.width / ratio;
+                cvs.width = Math.min(img.width, 1200); cvs.height = cvs.width / ratio;
                 cvs.getContext('2d').drawImage(img, 0, 0, cvs.width, cvs.height);
-                
-                fotosSelecionadas.push({
-                    id: Date.now() + Math.random(), preview: cvs.toDataURL('image/jpeg', 0.85), edited: null,
-                    tipo: '', acabamento: 'none', medidaPrincipal: 1, itensOrcamento: [], legenda: ''
-                });
-                renderizarInterface();
-                autoSalvar();
+                fotosSelecionadas.push({ id: Date.now() + Math.random(), preview: cvs.toDataURL('image/jpeg', 0.85), edited: null, tipo: '', acabamento: 'none', medidaPrincipal: 1, itensOrcamento: [], legenda: '' });
+                renderizarInterface(); autoSalvar();
             };
             img.src = event.target.result;
         };
@@ -307,34 +279,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function reconstruirComposicao(foto) {
       if (!foto.tipo || !TIPOLOGIAS[foto.tipo]) return;
-      const m = foto.medidaPrincipal;
-      foto.itensOrcamento = [];
-      
+      const m = foto.medidaPrincipal; foto.itensOrcamento = [];
       TIPOLOGIAS[foto.tipo].composicao.forEach(c => {
           let qtdFinal = m;
           if (c.mult === "CEIL_GRAMPO") qtdFinal = Math.ceil(m / 0.3);
           else if (c.mult === "GRAMPO_X_008") qtdFinal = Math.ceil(m / 0.3) * 0.08;
           else if (typeof c.mult === 'number') qtdFinal = m * c.mult;
-
-          let preco = c.precoUnit;
-          let desc = c.desc;
+          let preco = c.precoUnit; let desc = c.desc;
           if (baseSinapi.length > 0) {
-              const termoNorm = normalizarTexto(c.busca);
-              let s = baseSinapi.find(i => normalizarTexto(i["TABELA DE CUSTOS SINTÉTICA"]).includes(termoNorm));
+              let s = baseSinapi.find(i => normalizarTexto(i["TABELA DE CUSTOS SINTÉTICA"]).includes(normalizarTexto(c.busca)));
               if (s) { preco = parsePreco(s["FIELD4"]); desc = s["TABELA DE CUSTOS SINTÉTICA"]; }
           }
           foto.itensOrcamento.push({ desc, unid: c.unid, qtd: parseFloat(qtdFinal.toFixed(2)), preco, multRef: c.mult });
       });
-
       if (foto.acabamento !== 'none') {
           const a = ACABAMENTOS[foto.acabamento];
-          let area = m * TIPOLOGIAS[foto.tipo].fatorArea;
-          let preco = a.preco;
-          let desc = a.desc;
-          
+          let area = m * TIPOLOGIAS[foto.tipo].fatorArea; let preco = a.preco; let desc = a.desc;
           if (baseSinapi.length > 0) {
-              const termoNorm = normalizarTexto(a.busca);
-              let s = baseSinapi.find(i => normalizarTexto(i["TABELA DE CUSTOS SINTÉTICA"]).includes(termoNorm));
+              let s = baseSinapi.find(i => normalizarTexto(i["TABELA DE CUSTOS SINTÉTICA"]).includes(normalizarTexto(a.busca)));
               if (s) { preco = parsePreco(s["FIELD4"]); desc = s["TABELA DE CUSTOS SINTÉTICA"]; }
           }
           foto.itensOrcamento.push({ desc, unid: a.unid, qtd: parseFloat(area.toFixed(2)), preco, multRef: TIPOLOGIAS[foto.tipo].fatorArea });
@@ -342,59 +304,28 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function atualizarTotaisNoDOM() {
-      let totalDiretoGlobal = 0;
-      let resumoHtml = `<h4 style="margin: 0 0 10px 0; color: #555;">Subtotais Diretos:</h4><ul style="list-style: none; padding: 0; margin: 0; font-size: 0.9em; color: #333;">`;
-
+      let totalDiretoGlobal = 0; let resumoHtml = `<h4 style="margin: 0 0 10px 0; color: #555;">Subtotais Diretos:</h4><ul style="list-style: none; padding: 0; margin: 0; font-size: 0.9em; color: #333;">`;
       fotosSelecionadas.forEach((foto, idx) => {
           let subtotalPatologia = 0;
           foto.itensOrcamento.forEach((item, itemIdx) => {
-              let totalItem = item.qtd * item.preco;
-              subtotalPatologia += totalItem;
-
-              const celulaTotalItem = document.getElementById(`totalItem-${idx}-${itemIdx}`);
-              if (celulaTotalItem) celulaTotalItem.innerText = `R$ ${totalItem.toFixed(2).replace('.',',')}`;
-              
-              const inputQtd = document.getElementById(`qtd-${idx}-${itemIdx}`);
-              if (inputQtd && document.activeElement !== inputQtd) inputQtd.value = item.qtd;
+              let totalItem = item.qtd * item.preco; subtotalPatologia += totalItem;
+              const cel = document.getElementById(`totalItem-${idx}-${itemIdx}`); if (cel) cel.innerText = `R$ ${totalItem.toFixed(2).replace('.',',')}`;
+              const inQtd = document.getElementById(`qtd-${idx}-${itemIdx}`); if (inQtd && document.activeElement !== inQtd) inQtd.value = item.qtd;
           });
           totalDiretoGlobal += subtotalPatologia;
-
-          const celulaSubtotal = document.getElementById(`subtotal-${idx}`);
-          if (celulaSubtotal) celulaSubtotal.innerText = `R$ ${subtotalPatologia.toFixed(2).replace('.',',')}`;
-
-          if (foto.tipo) {
-              resumoHtml += `<li style="display: flex; justify-content: space-between; border-bottom: 1px solid #eee; padding: 4px 0;">
-                <span>Patologia 0${idx + 1} - ${TIPOLOGIAS[foto.tipo].nome}</span>
-                <strong>R$ ${subtotalPatologia.toFixed(2).replace('.',',')}</strong>
-              </li>`;
-          }
+          const celSub = document.getElementById(`subtotal-${idx}`); if (celSub) celSub.innerText = `R$ ${subtotalPatologia.toFixed(2).replace('.',',')}`;
+          if (foto.tipo) resumoHtml += `<li style="display: flex; justify-content: space-between; border-bottom: 1px solid #eee; padding: 4px 0;"><span>Patologia 0${idx + 1} - ${TIPOLOGIAS[foto.tipo].nome}</span><strong>R$ ${subtotalPatologia.toFixed(2).replace('.',',')}</strong></li>`;
       });
-
-      let taxaBdi = parseFloat(inputBDI.value) || 0;
-      let valorBdi = totalDiretoGlobal * (taxaBdi / 100);
-      let totalComBdi = totalDiretoGlobal + valorBdi;
-
-      resumoHtml += `</ul>
-        <div style="display: flex; justify-content: space-between; margin-top: 10px; font-size: 1em; color: #000;">
-            <span>Soma dos Custos Diretos:</span>
-            <strong>R$ ${totalDiretoGlobal.toFixed(2).replace('.',',')}</strong>
-        </div>
-        <div style="display: flex; justify-content: space-between; margin-top: 5px; font-size: 1em; color: #12D0FF;">
-            <span>BDI (${taxaBdi}%):</span>
-            <strong>+ R$ ${valorBdi.toFixed(2).replace('.',',')}</strong>
-        </div>
-      `;
-
+      let taxaBdi = parseFloat(inputBDI.value) || 0; let valorBdi = totalDiretoGlobal * (taxaBdi / 100); let totalComBdi = totalDiretoGlobal + valorBdi;
+      resumoHtml += `</ul><div style="display: flex; justify-content: space-between; margin-top: 10px; font-size: 1em; color: #000;"><span>Soma dos Custos Diretos:</span><strong>R$ ${totalDiretoGlobal.toFixed(2).replace('.',',')}</strong></div>
+        <div style="display: flex; justify-content: space-between; margin-top: 5px; font-size: 1em; color: #12D0FF;"><span>BDI (${taxaBdi}%):</span><strong>+ R$ ${valorBdi.toFixed(2).replace('.',',')}</strong></div>`;
       document.getElementById('resumo-tela-subtotais').innerHTML = resumoHtml;
       document.getElementById('valor-total-tela').innerText = `R$ ${totalComBdi.toFixed(2).replace('.',',')}`;
   }
 
   window.calcularPanoInteiro = function(idx) {
       const f = fotosSelecionadas[idx];
-      if (!f.acabamento || f.acabamento === 'none') {
-          alert('Por favor, selecione um Acabamento de Superfície antes de calcular o Pano Inteiro.');
-          return;
-      }
+      if (!f.acabamento || f.acabamento === 'none') { alert('Selecione um Acabamento.'); return; }
       let area = prompt("Informe a área total (m²) da parede para o Pano Inteiro:");
       if (area) {
           area = parseFloat(area.replace(',', '.'));
@@ -402,23 +333,18 @@ document.addEventListener('DOMContentLoaded', () => {
               const a = ACABAMENTOS[f.acabamento];
               f.itensOrcamento = f.itensOrcamento.filter(it => !it.desc.includes(a.desc));
               f.itensOrcamento.push({ desc: a.desc + " (Pano Inteiro)", unid: a.unid, qtd: area, preco: a.preco, multRef: null });
-              renderizarInterface();
-              autoSalvar();
+              renderizarInterface(); autoSalvar();
           }
       }
   };
 
   function renderizarInterface() {
     galeriaPreview.innerHTML = '';
-
     fotosSelecionadas.forEach((foto, idx) => {
-      const card = document.createElement('div');
-      card.className = 'card-patologia';
+      const card = document.createElement('div'); card.className = 'card-patologia';
       const tituloMedidaT = foto.tipo ? ` - ${foto.medidaPrincipal} ${TIPOLOGIAS[foto.tipo].unidadeBase}` : '';
-
       let html = `
-        <div class="card-col-esq">
-            <h3 style="margin-top:0; color:#12D0FF; text-align:left; font-family:Tahoma, sans-serif;">Patologia 0${idx + 1}${tituloMedidaT}</h3>
+        <div class="card-col-esq"><h3 style="margin-top:0; color:#12D0FF; text-align:left;">Patologia 0${idx + 1}${tituloMedidaT}</h3>
             <img src="${foto.edited || foto.preview}" style="max-width:100%; max-height:250px; display:block; margin:auto; border-radius:4px; border:1px solid #ccc;">
             <div style="margin-top:10px; display:flex; gap:5px; flex-wrap:wrap; justify-content:center;">
                 <button class="botao-secundario" onclick="abrirEditor(${idx})" style="flex:1 1 45%; padding:8px;">✏️ Desenhar</button>
@@ -426,7 +352,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 <button class="botao-secundario" onclick="removerFoto(${idx})" style="flex:1 1 100%; background:#d9534f; color:#fff; padding:8px; border:none;">✖ Excluir Foto</button>
             </div>
         </div>
-        
         <div class="card-col-dir">
             <label style="font-weight:bold; color: #555;">Tipologia Técnica:</label>
             <select onchange="mudarTipologia(${idx}, this.value)" style="width:100%;">
@@ -435,12 +360,9 @@ document.addEventListener('DOMContentLoaded', () => {
             </select>
             ${foto.tipo ? `
                 <div style="display:flex; gap:10px; flex-wrap:wrap; background:#eef2f5; padding:10px; border-radius:4px;">
-                    <div style="flex:1; min-width: 120px;">
-                        <label style="font-weight:bold; font-size:0.9em;">Medida (${TIPOLOGIAS[foto.tipo].unidadeBase}):</label>
-                        <input type="number" step="0.01" value="${foto.medidaPrincipal}" oninput="atualizarMedida(${idx}, this.value)">
-                    </div>
-                    <div style="flex:2; min-width: 200px;">
-                        <label style="font-weight:bold; font-size:0.9em;">Acabamento de Superfície:</label>
+                    <div style="flex:1; min-width: 120px;"><label style="font-weight:bold; font-size:0.9em;">Medida (${TIPOLOGIAS[foto.tipo].unidadeBase}):</label>
+                        <input type="number" step="0.01" value="${foto.medidaPrincipal}" oninput="atualizarMedida(${idx}, this.value)"></div>
+                    <div style="flex:2; min-width: 200px;"><label style="font-weight:bold; font-size:0.9em;">Acabamento de Superfície:</label>
                         <div style="display:flex; gap:5px;">
                             <select onchange="mudarAcabamento(${idx}, this.value)" style="flex:1;">
                                 ${Object.keys(ACABAMENTOS).map(k => `<option value="${k}" ${foto.acabamento === k ? 'selected' : ''}>${ACABAMENTOS[k].desc}</option>`).join('')}
@@ -450,40 +372,31 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 </div>
             ` : ''}
-            <div class="tabela-wrapper">
-                <table class="tabela-modular">
-                    <thead><tr><th>Serviço</th><th>Und</th><th>Qtd</th><th>Unit</th><th>Total</th><th>✖</th></tr></thead>
-                    <tbody>
-                        ${foto.itensOrcamento.map((it, iIdx) => `
-                            <tr>
-                                <td style="font-size:0.9em;">${it.desc}</td><td style="text-align:center;">${it.unid}</td>
+            <div class="tabela-wrapper"><table class="tabela-modular"><thead><tr><th>Serviço</th><th>Und</th><th>Qtd</th><th>Unit</th><th>Total</th><th>✖</th></tr></thead>
+                    <tbody>${foto.itensOrcamento.map((it, iIdx) => `
+                            <tr><td style="font-size:0.9em;">${it.desc}</td><td style="text-align:center;">${it.unid}</td>
                                 <td><input type="number" id="qtd-${idx}-${iIdx}" step="0.01" value="${it.qtd}" oninput="atualizarQtdItem(${idx}, ${iIdx}, this.value)"></td>
                                 <td style="text-align:right;">R$ ${it.preco.toFixed(2).replace('.',',')}</td>
                                 <td id="totalItem-${idx}-${iIdx}" style="text-align:right; font-weight:bold;">R$ ${(it.qtd * it.preco).toFixed(2).replace('.',',')}</td>
-                                <td style="text-align:center;"><button onclick="removerItem(${idx}, ${iIdx})" style="color:red; border:none; background:none; cursor:pointer;">✖</button></td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                    <tfoot><tr style="background:#f8f9fa;"><td colspan="4" style="text-align:right; font-weight:bold;">Subtotal Direto:</td><td id="subtotal-${idx}" style="font-weight:bold; color:#12D0FF; text-align:right;">R$ 0,00</td><td></td></tr></tfoot>
-                </table>
-            </div>
+                                <td style="text-align:center;"><button onclick="removerItem(${idx}, ${iIdx})" style="color:red; border:none; background:none; cursor:pointer;">✖</button></td></tr>`).join('')}
+                    </tbody><tfoot><tr style="background:#f8f9fa;"><td colspan="4" style="text-align:right; font-weight:bold;">Subtotal Direto:</td><td id="subtotal-${idx}" style="font-weight:bold; color:#12D0FF; text-align:right;">R$ 0,00</td><td></td></tr></tfoot>
+                </table></div>
             <div style="border: 1px dashed #bbb; padding: 10px; margin-top: 5px; background: #fafafa; border-radius: 4px;">
-                <span style="font-weight:bold; font-size: 0.9em; color:#555;">➕ Incluir Serviço Adicional ou Preliminar:</span>
+                <span style="font-weight:bold; font-size: 0.9em; color:#555;">➕ Adicionar Serviço:</span>
                 <div style="margin-top: 8px; display: flex; gap: 5px; flex-wrap: wrap;">
-                    <button type="button" class="botao-secundario" style="font-size: 0.75em; padding: 4px 6px;" onclick="adicionarItemRapido(${idx}, 'Caçamba de Entulho (5m³)', 'un', 450.00)">+ Caçamba</button>
-                    <button type="button" class="botao-secundario" style="font-size: 0.75em; padding: 4px 6px;" onclick="adicionarItemRapido(${idx}, 'Andaime Fachadeiro/Tubular (m²xMês)', 'm²', 25.00)">+ Andaime</button>
-                    <button type="button" class="botao-secundario" style="font-size: 0.75em; padding: 4px 6px;" onclick="adicionarItemRapido(${idx}, 'Emissão de ART / Laudo Técnico', 'un', 350.00)">+ ART</button>
+                    <button type="button" class="botao-secundario" style="font-size: 0.75em; padding: 4px 6px;" onclick="adicionarItemRapido(${idx}, 'Caçamba de Entulho', 'un', 450)">+ Caçamba</button>
+                    <button type="button" class="botao-secundario" style="font-size: 0.75em; padding: 4px 6px;" onclick="adicionarItemRapido(${idx}, 'Andaime Fachadeiro', 'm²', 25)">+ Andaime</button>
+                    <button type="button" class="botao-secundario" style="font-size: 0.75em; padding: 4px 6px;" onclick="adicionarItemRapido(${idx}, 'Laudo Técnico (ART)', 'un', 350)">+ ART</button>
                 </div>
                 <div class="busca-sinapi-local" style="margin-top: 8px;">
                     <input type="text" id="busca-${idx}" placeholder="Buscar no SINAPI..." onkeyup="pesquisarSinapi(event, ${idx})">
-                    <select id="resultado-${idx}"><option value="">Aguardando busca...</option></select>
-                    <button onclick="adicionarSinapiNaPatologia(${idx})" style="background:#28a745; color:white; border:none; border-radius:4px; cursor:pointer;">Inserir</button>
+                    <select id="resultado-${idx}"><option value="">Aguardando...</option></select>
+                    <button onclick="adicionarSinapiNaPatologia(${idx})" style="background:#28a745; color:white; border:none; border-radius:4px;">Inserir</button>
                 </div>
             </div>
-            <textarea placeholder="Observações e legenda para o laudo..." oninput="atualizarLegenda(${idx}, this.value)" style="min-height: 60px;">${foto.legenda}</textarea>
+            <textarea placeholder="Observações para o laudo..." oninput="atualizarLegenda(${idx}, this.value)" style="min-height: 60px;">${foto.legenda}</textarea>
         </div>`;
-      card.innerHTML = html;
-      galeriaPreview.appendChild(card);
+      card.innerHTML = html; galeriaPreview.appendChild(card);
     });
     atualizarTotaisNoDOM();
   }
@@ -496,29 +409,18 @@ document.addEventListener('DOMContentLoaded', () => {
   window.removerItem = (idx, iIdx) => { fotosSelecionadas[idx].itensOrcamento.splice(iIdx, 1); renderizarInterface(); autoSalvar(); };
   window.atualizarLegenda = (idx, texto) => { fotosSelecionadas[idx].legenda = texto; autoSalvar(); };
 
-  window.adicionarItemRapido = function(idxFoto, desc, unid, precoBase) {
-      fotosSelecionadas[idxFoto].itensOrcamento.push({ desc: desc, unid: unid, qtd: 1, preco: precoBase, multRef: null });
-      renderizarInterface();
-      autoSalvar();
-  };
+  window.adicionarItemRapido = function(idxFoto, desc, unid, precoBase) { fotosSelecionadas[idxFoto].itensOrcamento.push({ desc: desc, unid: unid, qtd: 1, preco: precoBase, multRef: null }); renderizarInterface(); autoSalvar(); };
 
   window.pesquisarSinapi = function(event, idxFoto) {
       const termo = normalizarTexto(event.target.value);
       const select = document.getElementById(`resultado-${idxFoto}`);
       select.innerHTML = '';
       if(termo.length < 3) { select.innerHTML = '<option value="">Digite 3 letras...</option>'; return; }
-      
       const resultados = baseSinapi.filter(i => i["TABELA DE CUSTOS SINTÉTICA"] && normalizarTexto(i["TABELA DE CUSTOS SINTÉTICA"]).includes(termo)).slice(0, 40);
       if(resultados.length === 0) { select.innerHTML = '<option value="">Nada encontrado.</option>'; return; }
-
       resultados.forEach(item => {
-          const desc = item["TABELA DE CUSTOS SINTÉTICA"];
-          const preco = parsePreco(item["FIELD4"]);
-          const unid = item["FIELD3"] || "un";
-          const opt = document.createElement('option');
-          opt.value = JSON.stringify({ desc, unid, preco });
-          opt.text = `${desc.substring(0,50)}... | ${unid} | R$ ${preco.toFixed(2)}`;
-          select.appendChild(opt);
+          const desc = item["TABELA DE CUSTOS SINTÉTICA"]; const preco = parsePreco(item["FIELD4"]); const unid = item["FIELD3"] || "un";
+          const opt = document.createElement('option'); opt.value = JSON.stringify({ desc, unid, preco }); opt.text = `${desc.substring(0,50)}... | R$ ${preco.toFixed(2)}`; select.appendChild(opt);
       });
   };
 
@@ -527,195 +429,87 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!select.value || select.value.startsWith('Aguardando') || select.value.startsWith('Nenhum') || select.value.startsWith('Digite')) return;
       const dadosItem = JSON.parse(select.value);
       fotosSelecionadas[idxFoto].itensOrcamento.push({ desc: dadosItem.desc, unid: dadosItem.unid, qtd: 1, preco: dadosItem.preco, multRef: null });
-      renderizarInterface();
-      autoSalvar();
+      renderizarInterface(); autoSalvar();
   };
 
-  // =========================================================================
-  // MOTOR DO CANVAS E CROPPER (MODAIS FLUTUANTES)
-  // =========================================================================
+  // --- CANVAS E CROPPER (MODAIS) ---
   window.abrirEditor = (idx) => {
-      fotoAtualEdicaoIndex = idx;
-      const img = new Image();
-      img.onload = () => {
-          canvasEditor.width = img.width; canvasEditor.height = img.height;
-          ctxEditor.drawImage(img, 0, 0);
-          historicoEdicao = [canvasEditor.toDataURL()];
-          document.getElementById('modalEditor').classList.remove('modal-oculto');
-      };
+      fotoAtualEdicaoIndex = idx; const img = new Image();
+      img.onload = () => { canvasEditor.width = img.width; canvasEditor.height = img.height; ctxEditor.drawImage(img, 0, 0); historicoEdicao = [canvasEditor.toDataURL()]; document.getElementById('modalEditor').classList.remove('modal-oculto'); };
       img.src = fotosSelecionadas[idx].edited || fotosSelecionadas[idx].preview;
   };
 
   document.querySelectorAll('input[name="ferramentaEdicao"]').forEach(r => {
       r.addEventListener('change', (e) => {
-          ferramentaAtual = e.target.value;
-          const t = document.getElementById('textoEdicao');
-          t.style.display = (ferramentaAtual === 'texto' || ferramentaAtual === 'regua') ? 'inline-block' : 'none';
-          t.placeholder = ferramentaAtual === 'regua' ? "Ex: 2.5m" : "Digite o texto aqui...";
+          ferramentaAtual = e.target.value; const t = document.getElementById('textoEdicao');
+          t.style.display = (ferramentaAtual === 'texto' || ferramentaAtual === 'regua') ? 'inline-block' : 'none'; t.placeholder = ferramentaAtual === 'regua' ? "Ex: 2.5m" : "Digite...";
       });
   });
 
   function getPos(e) {
-      const r = canvasEditor.getBoundingClientRect();
-      const sx = canvasEditor.width / r.width, sy = canvasEditor.height / r.height;
+      const r = canvasEditor.getBoundingClientRect(); const sx = canvasEditor.width / r.width, sy = canvasEditor.height / r.height;
       let cx = e.clientX, cy = e.clientY;
-      if (e.touches && e.touches.length > 0) { cx = e.touches[0].clientX; cy = e.touches[0].clientY; }
-      else if (e.changedTouches && e.changedTouches.length > 0) { cx = e.changedTouches[0].clientX; cy = e.changedTouches[0].clientY; }
+      if (e.touches && e.touches.length > 0) { cx = e.touches[0].clientX; cy = e.touches[0].clientY; } else if (e.changedTouches && e.changedTouches.length > 0) { cx = e.changedTouches[0].clientX; cy = e.changedTouches[0].clientY; }
       return { x: (cx - r.left) * sx, y: (cy - r.top) * sy };
   }
 
   function inciarDesenho(e) {
-      if (e.cancelable) e.preventDefault();
-      const p = getPos(e);
+      if (e.cancelable) e.preventDefault(); const p = getPos(e);
       if (ferramentaAtual === 'texto') {
           const txt = document.getElementById('textoEdicao').value.trim();
-          if (txt) {
-              ctxEditor.font = `bold ${Math.max(20, canvasEditor.width * 0.04)}px Tahoma, Arial`;
-              ctxEditor.fillStyle = 'red'; ctxEditor.strokeStyle = 'white'; ctxEditor.lineWidth = 2;
-              ctxEditor.strokeText(txt, p.x, p.y); ctxEditor.fillText(txt, p.x, p.y);
-              historicoEdicao.push(canvasEditor.toDataURL());
-          }
-          return;
+          if (txt) { ctxEditor.font = `bold ${Math.max(20, canvasEditor.width * 0.04)}px Tahoma, Arial`; ctxEditor.fillStyle = 'red'; ctxEditor.strokeStyle = 'white'; ctxEditor.lineWidth = 2; ctxEditor.strokeText(txt, p.x, p.y); ctxEditor.fillText(txt, p.x, p.y); historicoEdicao.push(canvasEditor.toDataURL()); } return;
       }
-      isDrawing = true; startX = p.x; startY = p.y;
-      lastStateImageData = ctxEditor.getImageData(0, 0, canvasEditor.width, canvasEditor.height);
+      isDrawing = true; startX = p.x; startY = p.y; lastStateImageData = ctxEditor.getImageData(0, 0, canvasEditor.width, canvasEditor.height);
   }
 
   function moverDesenho(e) {
-      if (!isDrawing) return;
-      if (e.cancelable) e.preventDefault();
-      const p = getPos(e);
-      ctxEditor.putImageData(lastStateImageData, 0, 0);
-      ctxEditor.lineWidth = Math.max(4, canvasEditor.width * 0.008);
-      const ang = Math.atan2(p.y - startY, p.x - startX);
-      
+      if (!isDrawing) return; if (e.cancelable) e.preventDefault();
+      const p = getPos(e); ctxEditor.putImageData(lastStateImageData, 0, 0); ctxEditor.lineWidth = Math.max(4, canvasEditor.width * 0.008); const ang = Math.atan2(p.y - startY, p.x - startX);
       if (ferramentaAtual === 'seta') {
-          ctxEditor.strokeStyle = 'red'; ctxEditor.fillStyle = 'red';
-          const tPonta = Math.max(15, canvasEditor.width * 0.03);
-          ctxEditor.beginPath(); ctxEditor.moveTo(startX, startY); ctxEditor.lineTo(p.x, p.y);
-          ctxEditor.lineTo(p.x - tPonta * Math.cos(ang - 0.5), p.y - tPonta * Math.sin(ang - 0.5));
-          ctxEditor.moveTo(p.x, p.y); ctxEditor.lineTo(p.x - tPonta * Math.cos(ang + 0.5), p.y - tPonta * Math.sin(ang + 0.5)); ctxEditor.stroke();
+          ctxEditor.strokeStyle = 'red'; ctxEditor.fillStyle = 'red'; const tPonta = Math.max(15, canvasEditor.width * 0.03); ctxEditor.beginPath(); ctxEditor.moveTo(startX, startY); ctxEditor.lineTo(p.x, p.y); ctxEditor.lineTo(p.x - tPonta * Math.cos(ang - 0.5), p.y - tPonta * Math.sin(ang - 0.5)); ctxEditor.moveTo(p.x, p.y); ctxEditor.lineTo(p.x - tPonta * Math.cos(ang + 0.5), p.y - tPonta * Math.sin(ang + 0.5)); ctxEditor.stroke();
       } else if (ferramentaAtual === 'z_rebar') {
-          ctxEditor.strokeStyle = 'blue'; ctxEditor.fillStyle = 'blue';
-          const tGancho = Math.max(20, canvasEditor.width * 0.04);
-          ctxEditor.beginPath();
-          ctxEditor.moveTo(startX + tGancho * Math.cos(ang - 1.5), startY + tGancho * Math.sin(ang - 1.5));
-          ctxEditor.lineTo(startX, startY); ctxEditor.lineTo(p.x, p.y);
-          ctxEditor.lineTo(p.x + tGancho * Math.cos(ang + 1.5), p.y + tGancho * Math.sin(ang + 1.5)); ctxEditor.stroke();
+          ctxEditor.strokeStyle = 'blue'; ctxEditor.fillStyle = 'blue'; const tGancho = Math.max(20, canvasEditor.width * 0.04); ctxEditor.beginPath(); ctxEditor.moveTo(startX + tGancho * Math.cos(ang - 1.5), startY + tGancho * Math.sin(ang - 1.5)); ctxEditor.lineTo(startX, startY); ctxEditor.lineTo(p.x, p.y); ctxEditor.lineTo(p.x + tGancho * Math.cos(ang + 1.5), p.y + tGancho * Math.sin(ang + 1.5)); ctxEditor.stroke();
       } else if (ferramentaAtual === 'regua') {
-          ctxEditor.strokeStyle = '#ffcc00'; ctxEditor.fillStyle = '#ffcc00';
-          ctxEditor.beginPath(); ctxEditor.moveTo(startX, startY); ctxEditor.lineTo(p.x, p.y); ctxEditor.stroke();
-          ctxEditor.beginPath(); ctxEditor.arc(startX, startY, 6, 0, 2*Math.PI); ctxEditor.fill();
-          ctxEditor.beginPath(); ctxEditor.arc(p.x, p.y, 6, 0, 2*Math.PI); ctxEditor.fill();
+          ctxEditor.strokeStyle = '#ffcc00'; ctxEditor.fillStyle = '#ffcc00'; ctxEditor.beginPath(); ctxEditor.moveTo(startX, startY); ctxEditor.lineTo(p.x, p.y); ctxEditor.stroke(); ctxEditor.beginPath(); ctxEditor.arc(startX, startY, 6, 0, 2*Math.PI); ctxEditor.fill(); ctxEditor.beginPath(); ctxEditor.arc(p.x, p.y, 6, 0, 2*Math.PI); ctxEditor.fill();
       } else if (ferramentaAtual === 'circulo') {
-          ctxEditor.strokeStyle = 'red';
-          ctxEditor.beginPath(); ctxEditor.ellipse(startX, startY, Math.abs(p.x - startX), Math.abs(p.y - startY), 0, 0, 2 * Math.PI); ctxEditor.stroke();
+          ctxEditor.strokeStyle = 'red'; ctxEditor.beginPath(); ctxEditor.ellipse(startX, startY, Math.abs(p.x - startX), Math.abs(p.y - startY), 0, 0, 2 * Math.PI); ctxEditor.stroke();
       }
   }
 
   function finalizarDesenho(e) {
-      if (!isDrawing) return;
-      isDrawing = false;
-      if (e.cancelable) e.preventDefault();
+      if (!isDrawing) return; isDrawing = false; if (e.cancelable) e.preventDefault();
       if (ferramentaAtual === 'regua') {
           const txt = document.getElementById('textoEdicao').value.trim();
-          if(txt){
-              const p = getPos(e);
-              ctxEditor.font = `bold ${Math.max(24, canvasEditor.width * 0.04)}px Tahoma, Arial`;
-              ctxEditor.fillStyle = '#ffcc00'; ctxEditor.strokeStyle = 'black'; ctxEditor.lineWidth = 3;
-              ctxEditor.strokeText(txt, (startX + p.x)/2, ((startY + p.y)/2) - 10); 
-              ctxEditor.fillText(txt, (startX + p.x)/2, ((startY + p.y)/2) - 10);
-          }
+          if(txt){ const p = getPos(e); ctxEditor.font = `bold ${Math.max(24, canvasEditor.width * 0.04)}px Tahoma, Arial`; ctxEditor.fillStyle = '#ffcc00'; ctxEditor.strokeStyle = 'black'; ctxEditor.lineWidth = 3; ctxEditor.strokeText(txt, (startX + p.x)/2, ((startY + p.y)/2) - 10); ctxEditor.fillText(txt, (startX + p.x)/2, ((startY + p.y)/2) - 10); }
       }
       historicoEdicao.push(canvasEditor.toDataURL());
   }
 
-  canvasEditor.addEventListener('mousedown', inciarDesenho, { passive: false });
-  canvasEditor.addEventListener('mousemove', moverDesenho, { passive: false });
-  canvasEditor.addEventListener('mouseup', finalizarDesenho, { passive: false });
-  canvasEditor.addEventListener('touchstart', inciarDesenho, { passive: false });
-  canvasEditor.addEventListener('touchmove', moverDesenho, { passive: false });
-  canvasEditor.addEventListener('touchend', finalizarDesenho, { passive: false });
+  canvasEditor.addEventListener('mousedown', inciarDesenho, { passive: false }); canvasEditor.addEventListener('mousemove', moverDesenho, { passive: false }); canvasEditor.addEventListener('mouseup', finalizarDesenho, { passive: false });
+  canvasEditor.addEventListener('touchstart', inciarDesenho, { passive: false }); canvasEditor.addEventListener('touchmove', moverDesenho, { passive: false }); canvasEditor.addEventListener('touchend', finalizarDesenho, { passive: false });
 
-  document.getElementById('btnSalvarEdicao').onclick = () => {
-      fotosSelecionadas[fotoAtualEdicaoIndex].edited = canvasEditor.toDataURL('image/jpeg', 0.85);
-      renderizarInterface();
-      document.getElementById('modalEditor').classList.add('modal-oculto');
-      autoSalvar();
-  };
-  document.getElementById('btnDesfazerSeta').onclick = () => {
-      if(historicoEdicao.length > 1) {
-          historicoEdicao.pop(); 
-          const img = new Image();
-          img.onload = () => { ctxEditor.clearRect(0,0,canvasEditor.width,canvasEditor.height); ctxEditor.drawImage(img,0,0); };
-          img.src = historicoEdicao[historicoEdicao.length - 1];
-      }
-  };
+  document.getElementById('btnSalvarEdicao').onclick = () => { fotosSelecionadas[fotoAtualEdicaoIndex].edited = canvasEditor.toDataURL('image/jpeg', 0.85); renderizarInterface(); document.getElementById('modalEditor').classList.add('modal-oculto'); autoSalvar(); };
+  document.getElementById('btnDesfazerSeta').onclick = () => { if(historicoEdicao.length > 1) { historicoEdicao.pop(); const img = new Image(); img.onload = () => { ctxEditor.clearRect(0,0,canvasEditor.width,canvasEditor.height); ctxEditor.drawImage(img,0,0); }; img.src = historicoEdicao[historicoEdicao.length - 1]; } };
   document.getElementById('btnFecharModal').onclick = () => document.getElementById('modalEditor').classList.add('modal-oculto');
 
   // --- CROPPER ---
-  window.abrirCrop = (idx) => {
-      fotoAtualCropIndex = idx;
-      const imgEl = document.getElementById('imgCrop');
-      imgEl.src = fotosSelecionadas[idx].edited || fotosSelecionadas[idx].preview;
-      document.getElementById('modalCrop').classList.remove('modal-oculto');
-      if(cropperInstancia) cropperInstancia.destroy();
-      imgEl.onload = () => { cropperInstancia = new Cropper(imgEl, { viewMode: 1, autoCropArea: 1, responsive: true }); };
-  };
-  document.getElementById('btnRotateL').onclick = () => { if(cropperInstancia) cropperInstancia.rotate(-90); };
-  document.getElementById('btnRotateR').onclick = () => { if(cropperInstancia) cropperInstancia.rotate(90); };
-  document.getElementById('btnCropLivre').onclick = () => { if(cropperInstancia) cropperInstancia.setAspectRatio(NaN); };
-  document.getElementById('btnCrop43').onclick = () => { if(cropperInstancia) cropperInstancia.setAspectRatio(4/3); };
-  
-  document.getElementById('btnAplicarCrop').onclick = () => {
-      if(cropperInstancia) {
-          fotosSelecionadas[fotoAtualCropIndex].edited = cropperInstancia.getCroppedCanvas({ imageSmoothingQuality: 'high' }).toDataURL('image/jpeg', 0.85);
-          renderizarInterface();
-          document.getElementById('modalCrop').classList.add('modal-oculto');
-          cropperInstancia.destroy(); cropperInstancia = null;
-          autoSalvar();
-      }
-  };
-  document.getElementById('btnFecharCrop').onclick = () => { 
-      document.getElementById('modalCrop').classList.add('modal-oculto'); 
-      if(cropperInstancia){ cropperInstancia.destroy(); cropperInstancia = null; } 
-  };
+  window.abrirCrop = (idx) => { fotoAtualCropIndex = idx; const imgEl = document.getElementById('imgCrop'); imgEl.src = fotosSelecionadas[idx].edited || fotosSelecionadas[idx].preview; document.getElementById('modalCrop').classList.remove('modal-oculto'); if(cropperInstancia) cropperInstancia.destroy(); imgEl.onload = () => { cropperInstancia = new Cropper(imgEl, { viewMode: 1, autoCropArea: 1, responsive: true }); }; };
+  document.getElementById('btnRotateL').onclick = () => { if(cropperInstancia) cropperInstancia.rotate(-90); }; document.getElementById('btnRotateR').onclick = () => { if(cropperInstancia) cropperInstancia.rotate(90); };
+  document.getElementById('btnCropLivre').onclick = () => { if(cropperInstancia) cropperInstancia.setAspectRatio(NaN); }; document.getElementById('btnCrop43').onclick = () => { if(cropperInstancia) cropperInstancia.setAspectRatio(4/3); };
+  document.getElementById('btnAplicarCrop').onclick = () => { if(cropperInstancia) { fotosSelecionadas[fotoAtualCropIndex].edited = cropperInstancia.getCroppedCanvas({ imageSmoothingQuality: 'high' }).toDataURL('image/jpeg', 0.85); renderizarInterface(); document.getElementById('modalCrop').classList.add('modal-oculto'); cropperInstancia.destroy(); cropperInstancia = null; autoSalvar(); } };
+  document.getElementById('btnFecharCrop').onclick = () => { document.getElementById('modalCrop').classList.add('modal-oculto'); if(cropperInstancia){ cropperInstancia.destroy(); cropperInstancia = null; } };
 
   // --- ASSINATURAS ---
-  document.getElementById('incluirAssinatura').addEventListener('change', function() {
-    document.getElementById('btnAssinaturaLabel').style.display = this.checked ? 'inline-block' : 'none';
-    if(!this.checked) assinaturaBase64 = null;
-    autoSalvar();
-  });
-  document.getElementById('imagemAssinatura').addEventListener('change', function(e) {
-    if (e.target.files[0]) {
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        assinaturaBase64 = ev.target.result;
-        document.getElementById('assinaturaStatus').style.display = 'inline-block';
-        document.getElementById('btnRemoverAssinatura').style.display = 'inline-block';
-        autoSalvar();
-      };
-      reader.readAsDataURL(e.target.files[0]);
-    }
-  });
-  document.getElementById('btnRemoverAssinatura').addEventListener('click', function() {
-    assinaturaBase64 = null;
-    document.getElementById('assinaturaStatus').style.display = 'none';
-    this.style.display = 'none';
-    document.getElementById('imagemAssinatura').value = ''; 
-    autoSalvar();
-  });
+  document.getElementById('incluirAssinatura').addEventListener('change', function() { document.getElementById('btnAssinaturaLabel').style.display = this.checked ? 'inline-block' : 'none'; if(!this.checked) assinaturaBase64 = null; autoSalvar(); });
+  document.getElementById('imagemAssinatura').addEventListener('change', function(e) { if (e.target.files[0]) { const reader = new FileReader(); reader.onload = (ev) => { assinaturaBase64 = ev.target.result; document.getElementById('assinaturaStatus').style.display = 'inline-block'; document.getElementById('btnRemoverAssinatura').style.display = 'inline-block'; autoSalvar(); }; reader.readAsDataURL(e.target.files[0]); } });
+  document.getElementById('btnRemoverAssinatura').addEventListener('click', function() { assinaturaBase64 = null; document.getElementById('assinaturaStatus').style.display = 'none'; this.style.display = 'none'; document.getElementById('imagemAssinatura').value = ''; autoSalvar(); });
 
-  // --- GERAÇÃO DO PDF ---
+  // --- GERAÇÃO DO PDF OTIMIZADO (V72) ---
   btnGerarPDF.addEventListener('click', () => {
     const local = document.getElementById('localVistoria').value || 'Não informado';
     let dataF = '___/___/_____';
     const valData = document.getElementById('dataVistoria').value;
-    if(valData) {
-        const partes = valData.split('-');
-        dataF = `${partes[2]}/${partes[1]}/${partes[0]}`;
-    }
+    if(valData) { const partes = valData.split('-'); dataF = `${partes[2]}/${partes[1]}/${partes[0]}`; }
     const hora = document.getElementById('horaVistoria').value || '--:--';
     const nomeFiscal = document.getElementById('nomeFiscal').value || 'Nome do Técnico';
     const cargoFiscal = document.getElementById('cargoFiscal').value || 'Cargo não informado';
@@ -733,76 +527,61 @@ document.addEventListener('DOMContentLoaded', () => {
         </tr>
       </table>
       <div style=\"border-top: 2px solid #12D0FF; margin-bottom: 4mm;\"></div>
-      
-      <table style=\"width: 100%; border-collapse: collapse; border: 1px solid #12D0FF; border-radius: 6px; margin-bottom: 6mm; font-family: Tahoma, Arial, sans-serif; font-size: 10pt; color: #000;\">
-        <tr>
-          <td style=\"padding: 8px; border-bottom: 1px solid #eee;\"><strong>Local da Obra/Perícia:</strong> ${local}</td>
-          <td style=\"padding: 8px; border-bottom: 1px solid #eee; border-left: 1px solid #eee;\"><strong>Data:</strong> ${dataF} &nbsp;&nbsp;|&nbsp;&nbsp; <strong>Hora:</strong> ${hora}</td>
-        </tr>
-        <tr>
-          <td style=\"padding: 8px;\"><strong>Responsável Técnico:</strong> ${nomeFiscal}</td>
-          <td style=\"padding: 8px; border-left: 1px solid #eee;\"><strong>Cargo:</strong> ${cargoFiscal}</td>
-        </tr>
+      <table style=\"width: 100%; border-collapse: collapse; border: 1px solid #12D0FF; border-radius: 6px; margin-bottom: 4mm; font-family: Tahoma, Arial, sans-serif; font-size: 9.5pt; color: #000;\">
+        <tr><td style=\"padding: 6px; border-bottom: 1px solid #eee;\"><strong>Local da Obra/Perícia:</strong> ${local}</td><td style=\"padding: 6px; border-bottom: 1px solid #eee; border-left: 1px solid #eee;\"><strong>Data:</strong> ${dataF} &nbsp;&nbsp;|&nbsp;&nbsp; <strong>Hora:</strong> ${hora}</td></tr>
+        <tr><td style=\"padding: 6px;\"><strong>Responsável Técnico:</strong> ${nomeFiscal}</td><td style=\"padding: 6px; border-left: 1px solid #eee;\"><strong>Cargo:</strong> ${cargoFiscal}</td></tr>
       </table>
     `;
 
     const corpo = document.getElementById('corpo-relatorio'); corpo.innerHTML = '';
     let somaDireta = 0; let memorialTxt = "";
-    let htmlResumoTotal = "";
     
     fotosSelecionadas.forEach((f, idx) => {
         const medTxt = f.tipo ? ` - ${f.medidaPrincipal} ${TIPOLOGIAS[f.tipo].unidadeBase}` : '';
         let sub = 0; let linhas = "";
         
-        let memHtml = `<table style="width: 100%; border-collapse: collapse; margin-top: 5px; font-size: 10pt; font-family: Tahoma, Arial, sans-serif; border: 1px solid #ccc;">
-            <tr style="background:#f9f9f9;"><th style="border: 1px solid #ccc; padding:4px; text-align:left;">Serviço</th><th style="border: 1px solid #ccc; padding:4px;">Memória de Cálculo</th><th style="border: 1px solid #ccc; padding:4px;">Subtotal</th></tr>`;
+        let memHtml = `<table style="width: 100%; border-collapse: collapse; margin-top: 2px; font-size: 8pt; font-family: Tahoma, Arial, sans-serif; border: 1px solid #aaa;">
+            <tr style="background:#f9f9f9;"><th style="border: 1px solid #aaa; padding:2px; text-align:left;">Serviço</th><th style="border: 1px solid #aaa; padding:2px;">Memória de Cálculo</th><th style="border: 1px solid #aaa; padding:2px;">Subtotal</th></tr>`;
 
         f.itensOrcamento.forEach(it => { 
             let t = it.qtd * it.preco; sub += t; 
-            linhas += `<tr><td style="border:1px solid #ccc; padding:4px;">${it.desc}</td><td style="text-align:center; border:1px solid #ccc; padding:4px;">${it.unid}</td><td style="text-align:center; border:1px solid #ccc; padding:4px;">${it.qtd}</td><td style="text-align:right; border:1px solid #ccc; padding:4px;">R$ ${it.preco.toFixed(2).replace('.',',')}</td><td style="text-align:right; font-weight:bold; border:1px solid #ccc; padding:4px;">R$ ${t.toFixed(2).replace('.',',')}</td></tr>`;
+            linhas += `<tr><td style="border:1px solid #aaa;">${it.desc}</td><td style="text-align:center; border:1px solid #aaa;">${it.unid}</td><td style="text-align:center; border:1px solid #aaa;">${it.qtd}</td><td style="text-align:right; border:1px solid #aaa;">R$ ${it.preco.toFixed(2).replace('.',',')}</td><td style="text-align:right; font-weight:bold; border:1px solid #aaa;">R$ ${t.toFixed(2).replace('.',',')}</td></tr>`;
             
             let formTxt = "Inserção manual";
             if (it.multRef === "CEIL_GRAMPO") formTxt = `Arred.Teto(${f.medidaPrincipal} / 0.3)`;
             else if (it.multRef === "GRAMPO_X_008") formTxt = `Grampos x 0.08 kg`;
             else if (it.multRef !== null && it.multRef !== undefined) formTxt = `${f.medidaPrincipal} x ${it.multRef} (Fator)`;
 
-            memHtml += `<tr><td style="border: 1px solid #ccc; padding:4px;">${it.desc}</td><td style="border: 1px solid #ccc; padding:4px; text-align:center; font-style:italic;">${formTxt} = ${it.qtd} ${it.unid}</td><td style="border: 1px solid #ccc; padding:4px; text-align:right; font-weight:bold;">R$ ${t.toFixed(2).replace('.',',')}</td></tr>`;
+            memHtml += `<tr><td style="border: 1px solid #aaa; padding:2px;">${it.desc}</td><td style="border: 1px solid #aaa; padding:2px; text-align:center; font-style:italic;">${formTxt} = ${it.qtd} ${it.unid}</td><td style="border: 1px solid #aaa; padding:2px; text-align:right; font-weight:bold;">R$ ${t.toFixed(2).replace('.',',')}</td></tr>`;
         });
         somaDireta += sub;
         memHtml += `</table>`;
 
-        htmlResumoTotal += `
-          <tr style="border-bottom: 1px solid #eee;">
-            <td style="padding: 4px 0;">Patologia 0${idx + 1} - ${f.tipo ? TIPOLOGIAS[f.tipo].nome : 'Não definida'}</td>
-            <td style="padding: 4px 0; text-align: right;">R$ ${sub.toFixed(2).replace('.',',')}</td>
-          </tr>
-        `;
+        // O subtotal agora é injetado diretamente no final do tbody (para evitar repetição de rodapé)
+        linhas += `<tr style="background:#f0f0f0;"><td colspan="4" align="right" style="font-weight:bold; border: 1px solid #aaa; padding:2px 4px;">Subtotal Direto:</td><td style="font-weight:bold; text-align:right; border: 1px solid #aaa; padding:2px 4px;">R$ ${sub.toFixed(2).replace('.',',')}</td></tr>`;
 
-        const legendaLinha = f.legenda ? `<tr><td colspan="5" style="border: 1px solid #ccc; padding: 6px; background:#fefefe; font-style:italic; font-size:9pt;"><strong>Legenda / Obs:</strong> ${f.legenda}</td></tr>` : '';
+        const legendaLinha = f.legenda ? `<tr><td colspan="5" style="border: 1px solid #aaa; padding: 4px; background:#fefefe; font-style:italic; font-size:8pt;"><strong>Legenda / Obs:</strong> ${f.legenda}</td></tr>` : '';
 
-        corpo.innerHTML += `<div class=\"bloco-patologia\"><h4 style="font-family: Tahoma, Arial, sans-serif; font-size: 11pt; border-bottom:1px solid #ccc; padding-bottom:2px; margin-bottom:10px;">Patologia 0${idx+1} - ${f.tipo ? TIPOLOGIAS[f.tipo].nome : ''}${medTxt}</h4>
+        corpo.innerHTML += `<div class=\"bloco-patologia\"><h4 style="font-family: Tahoma, Arial, sans-serif; font-size: 10pt; border-bottom:1px solid #ccc; padding-bottom:1px; margin-bottom:5px;">Patologia 0${idx+1} - ${f.tipo ? TIPOLOGIAS[f.tipo].nome : ''}${medTxt}</h4>
           <img src=\"${f.edited || f.preview}\" class=\"imagem-patologia-print\">
-          <table class=\"tabela-pdf\" style="margin-top: 5mm;">
-            <thead><tr><th>Serviço da Composição Orçamentária</th><th>Und</th><th>Qtd</th><th>V.Unit</th><th>Total</th></tr></thead>
-            <tbody>
-              ${legendaLinha}
-              ${linhas}
-            </tbody>
-            <tfoot><tr style="background:#f0f0f0;"><td colspan=\"4\" align=\"right\" style="font-weight:bold; border: 1px solid #ccc;">Subtotal Direto:</td><td style="font-weight:bold; text-align:right; border: 1px solid #ccc;">R$ ${sub.toFixed(2).replace('.',',')}</td></tr></tfoot>
+          <table class=\"tabela-pdf\"><thead><tr><th>Serviço da Composição Orçamentária</th><th>Und</th><th>Qtd</th><th>V.Unit</th><th>Total</th></tr></thead>
+          <tbody>
+            ${legendaLinha}
+            ${linhas}
+          </tbody>
           </table>
         </div>`;
         
-        if(f.tipo) memorialTxt += `<h5 style="font-family: Tahoma, Arial, sans-serif; font-size: 11pt; margin-bottom:2mm;">Patologia 0${idx+1}${medTxt}</h5><p style="font-family: Tahoma, Arial, sans-serif; text-align:justify;">${TIPOLOGIAS[f.tipo].memorial}</p>${memHtml}<br><br>`;
+        if(f.tipo) memorialTxt += `<h5 style="font-family: Tahoma, Arial, sans-serif; font-size: 10pt; margin-bottom:1mm;">Patologia 0${idx+1} - ${TIPOLOGIAS[f.tipo].nome}${medTxt}</h5><p style="font-family: Tahoma, Arial, sans-serif; text-align:justify; font-size:9.5pt; margin-top:0;">${TIPOLOGIAS[f.tipo].memorial}</p>${memHtml}<br>`;
     });
 
     let bdiVal = somaDireta * (taxaBdi / 100);
     document.getElementById('bloco-total-geral').innerHTML = `
-        <h4 style="font-family: Tahoma, Arial, sans-serif; font-size: 12pt; border-bottom: 1px solid #ccc; padding-bottom:2px; margin-top: 10px;">Resumo Financeiro Global</h4>
-        <table style="width: 100%; border-collapse: collapse; font-family: Tahoma, Arial, sans-serif; font-size: 11pt;">
-            ${htmlResumoTotal}
-            <tr style="border-top: 1px solid #ccc; background:#f9f9f9;"><td style="padding:5px;"><strong>Soma dos Custos Diretos:</strong></td><td style="text-align:right; font-weight:bold;">R$ ${somaDireta.toFixed(2).replace('.',',')}</td></tr>
-            <tr style="border-bottom: 1px solid #ccc;"><td style="padding:5px; color:#12D0FF;"><strong>BDI Aplicado (${taxaBdi}%):</strong></td><td style="text-align:right; font-weight:bold; color:#12D0FF;">+ R$ ${bdiVal.toFixed(2).replace('.',',')}</td></tr>
-            <tr><td style="padding:5px; font-size:13pt; font-weight:bold;">TOTAL ESTIMADO:</td><td style="text-align:right; font-size:13pt; font-weight:bold; color:#d9534f;">R$ ${(somaDireta+bdiVal).toFixed(2).replace('.',',')}</td></tr>
+        <h4 style="font-family: Tahoma, Arial, sans-serif; font-size: 11pt; border-bottom: 1px solid #ccc; padding-bottom:2px; margin-top: 5px;">Resumo Financeiro Global</h4>
+        <table style="width: 100%; border-collapse: collapse; font-family: Tahoma, Arial, sans-serif; font-size: 10pt;">
+            <tr style="border-top: 1px solid #ccc; background:#f9f9f9;"><td style="padding:4px;"><strong>Soma dos Custos Diretos:</strong></td><td style="text-align:right; font-weight:bold;">R$ ${somaDireta.toFixed(2).replace('.',',')}</td></tr>
+            <tr style="border-bottom: 1px solid #ccc;"><td style="padding:4px; color:#12D0FF;"><strong>BDI Aplicado (${taxaBdi}%):</strong></td><td style="text-align:right; font-weight:bold; color:#12D0FF;">+ R$ ${bdiVal.toFixed(2).replace('.',',')}</td></tr>
+            <tr><td style="padding:4px; font-size:12pt; font-weight:bold;">TOTAL ESTIMADO:</td><td style="text-align:right; font-size:12pt; font-weight:bold; color:#d9534f;">R$ ${(somaDireta+bdiVal).toFixed(2).replace('.',',')}</td></tr>
         </table>`;
     
     document.getElementById('texto-memorial-impresso').innerHTML = memorialTxt;
