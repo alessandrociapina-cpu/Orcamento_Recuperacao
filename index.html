@@ -12,7 +12,7 @@
   <link href="cropper.min.css" rel="stylesheet">
   <script src="cropper.min.js"></script>
   
-  <link rel="stylesheet" href="style.css?v=72"/>
+  <link rel="stylesheet" href="style.css?v=73"/>
   
   <style>
     /* ==========================================================
@@ -71,7 +71,7 @@
 
     /* TABELA COM SCROLL SEGURO NO CELULAR */
     .tabela-wrapper { width: 100%; max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; border: 1px solid #ddd; border-radius: 4px; margin-top: 5px; }
-    .tabela-modular { width: 100%; border-collapse: collapse; font-size: 0.85em; min-width: 550px; }
+    .tabela-modular { width: 100%; border-collapse: collapse; font-size: 0.85em; min-width: 500px; }
     .tabela-modular th, .tabela-modular td { padding: 6px; border: 1px solid #ccc; text-align: left; }
     .tabela-modular th { background-color: #e9ecef; }
     .tabela-modular th:nth-child(1) { min-width: 180px; }
@@ -79,6 +79,7 @@
     .tabela-modular th:nth-child(3) { min-width: 80px; }
     .tabela-modular input[type="number"] { width: 70px; padding: 4px; border: 1px solid #aaa; border-radius: 3px; }
     
+    /* BUSCA SINAPI RESPONSIVA */
     .busca-sinapi-local { display: flex; gap: 8px; margin-top: 10px; align-items: center; flex-wrap: wrap; width: 100%; }
     .busca-sinapi-local input, .busca-sinapi-local select, .busca-sinapi-local button { flex: 1 1 100%; min-width: 0; }
     @media (min-width: 768px) {
@@ -88,17 +89,25 @@
     }
 
     /* MODAIS FLUTUANTES */
-    .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.85); z-index: 9999; display: flex; align-items: center; justify-content: center; }
+    .modal-overlay {
+        position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+        background: rgba(0, 0, 0, 0.85); z-index: 9999;
+        display: flex; align-items: center; justify-content: center;
+    }
     .modal-oculto { display: none !important; }
-    .modal-conteudo { background: #fff; padding: 20px; border-radius: 8px; width: 95%; max-width: 900px; max-height: 95vh; overflow-y: auto; box-shadow: 0 5px 15px rgba(0,0,0,0.5); display: flex; flex-direction: column; }
-    #canvasEditor, #imgCrop { max-width: 100%; max-height: 55vh; margin: auto; display: block; }
+    .modal-conteudo {
+        background: #fff; padding: 20px; border-radius: 8px; width: 95%; max-width: 900px;
+        max-height: 95vh; overflow-y: auto; box-shadow: 0 5px 15px rgba(0,0,0,0.5); display: flex; flex-direction: column;
+    }
+    #canvasEditor { touch-action: none; max-width: 100%; max-height: 55vh; margin: auto; display: block; border: 1px solid #ccc; background: #e9ecef; }
+    #imgCrop { max-width: 100%; max-height: 55vh; display: block; }
     .editor-toolbar { margin-bottom: 10px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; background: #f8f9fa; padding: 10px; border-radius: 5px; border: 1px solid #ddd; }
 
     /* ==========================================================
-       CSS ABSOLUTO PARA IMPRESSÃO DO PDF (NOVA COMPACTAÇÃO V72)
+       CSS ABSOLUTO PARA IMPRESSÃO DO PDF (ANTI-CORTE V73)
        ========================================================== */
     @media print {
-      @page { margin: 10mm 10mm 15mm 10mm; size: A4 portrait; }
+      @page { margin: 15mm 10mm 15mm 10mm; size: A4 portrait; }
       
       .no-print, body > .container > div:not(#area-relatorio),
       .cabecalho-tela, .versao-info, .secao-entrada, .secao-fotos, 
@@ -107,26 +116,25 @@
       body { background: #fff !important; margin: 0 !important; padding: 0 !important; overflow: visible; }
       .container { box-shadow: none !important; border: none !important; padding: 0 !important; width: 100% !important; max-width: 100% !important; margin: 0 !important; }
       
-      /* Corpo Compactado */
-      #area-relatorio { display: block !important; width: 100%; font-family: Tahoma, Arial, sans-serif; font-size: 9.5pt; color: #000; text-align: justify; }
+      #area-relatorio { display: block !important; width: 100%; font-family: Tahoma, Arial, sans-serif; font-size: 10pt; color: #000; text-align: justify; box-sizing: border-box; }
       
-      /* Tabela Estritamente Travada nas Margens */
-      .tabela-pdf { width: 100%; max-width: 100%; border-collapse: collapse; font-size: 8pt; margin-top: 1mm; margin-bottom: 2mm; table-layout: fixed; word-wrap: break-word; }
-      .tabela-pdf th, .tabela-pdf td { border: 1px solid #666; padding: 2px 3px; }
+      /* Tabela rigorosamente travada na largura da página */
+      .tabela-pdf { width: 100% !important; max-width: 100% !important; border-collapse: collapse; font-size: 8pt; margin-top: 2mm; margin-bottom: 2mm; table-layout: fixed; }
+      .tabela-pdf th, .tabela-pdf td { border: 1px solid #666; padding: 3px; word-wrap: break-word; overflow-wrap: break-word; }
       .tabela-pdf th { background-color: #f0f0f0 !important; -webkit-print-color-adjust: exact; color: #000; font-weight: bold; text-align: center; }
-      /* Definição rigorosa de colunas para não vazar a tela */
-      .tabela-pdf th:nth-child(1), .tabela-pdf td:nth-child(1) { width: 50%; text-align: left; }
-      .tabela-pdf th:nth-child(2), .tabela-pdf td:nth-child(2) { width: 10%; text-align: center; }
-      .tabela-pdf th:nth-child(3), .tabela-pdf td:nth-child(3) { width: 10%; text-align: center; }
+      
+      .tabela-pdf th:nth-child(1), .tabela-pdf td:nth-child(1) { width: 46%; text-align: left; }
+      .tabela-pdf th:nth-child(2), .tabela-pdf td:nth-child(2) { width: 12%; text-align: center; }
+      .tabela-pdf th:nth-child(3), .tabela-pdf td:nth-child(3) { width: 12%; text-align: center; }
       .tabela-pdf th:nth-child(4), .tabela-pdf td:nth-child(4) { width: 15%; text-align: right; }
       .tabela-pdf th:nth-child(5), .tabela-pdf td:nth-child(5) { width: 15%; text-align: right; }
       
-      .bloco-patologia { page-break-after: always; padding-top: 1mm; }
+      .bloco-patologia { page-break-after: always; padding-top: 2mm; width: 100%; box-sizing: border-box; overflow: hidden; }
       .bloco-patologia:last-of-type { page-break-after: auto; } 
-      .imagem-patologia-print { max-width: 100%; height: auto; max-height: 95mm; border-radius: 1.5mm; display: block; margin: 0 auto 1mm auto; border: 1px solid #ccc; }
+      .imagem-patologia-print { max-width: 100%; height: auto; max-height: 95mm; border-radius: 1.5mm; display: block; margin: 0 auto 2mm auto; border: 1px solid #ccc; }
       
       /* Assinatura realista flutuante */
-      .assinaturas-container { display: flex; justify-content: center; gap: 60mm; margin-top: 10mm; page-break-inside: avoid; flex-wrap: wrap; }
+      .assinaturas-container { display: flex; justify-content: center; gap: 60mm; margin-top: 15mm; page-break-inside: avoid; flex-wrap: wrap; }
       .bloco-assinatura { display: flex; flex-direction: column; align-items: center; text-align: center; font-size: 10pt; font-family: Tahoma, Arial, sans-serif; color: #000; position: relative; }
       .linha-assinatura { width: 65mm; border-top: 1px solid #000; margin-top: 0px; margin-bottom: 2mm; z-index: 1; position: relative; }
       .assinatura-imagem-limpa { max-width: 60mm; height: auto; max-height: 15mm; object-fit: contain; display: block; margin-bottom: -3mm; position: relative; z-index: 0; }
@@ -134,7 +142,7 @@
       /* Rodapé fixado no fundo absoluto */
       .rodape-fixo-print { position: fixed !important; bottom: 0 !important; left: 0 !important; width: 100% !important; background-color: #fff; z-index: 1000; }
       .rodape-container { border-top: 1px solid #12D0FF !important; padding-top: 5px; width: 100%; }
-      .rodape-texto { font-family: Tahoma, Arial, sans-serif; font-size: 7.5pt; color: #12D0FF !important; text-align: left; line-height: 1.3; -webkit-print-color-adjust: exact; }
+      .rodape-texto { font-family: Tahoma, Arial, sans-serif; font-size: 8pt; color: #12D0FF !important; text-align: left; line-height: 1.3; -webkit-print-color-adjust: exact; }
     }
   </style>
 </head>
@@ -147,15 +155,14 @@
     </div>
     
     <div class="versao-info" style="text-align: center; font-size: 0.8em; color: #6c757d; margin-top: -15px; margin-bottom: 20px;">
-      Versão 72 | Compactação e Otimização Avançada de Impressão (PDF)
+      Versão 73 | PDF Otimizado Anti-Corte e Resumo Restabelecido
       <span class="info-tooltip-container" tabindex="0">
         <span class="info-icon">ℹ️</span>
         <div class="info-tooltip-text">
-          <strong style="color: #12D0FF;">Novidades da Versão 72:</strong><br>
-          - 📄 <b>Tabelas Seguras:</b> Bloqueio rígido no PDF para impedir o corte das colunas na margem direita.<br>
-          - 🔍 <b>Compactação:</b> Fontes e espaçamentos (padding) reduzidos para caber mais informação por página.<br>
-          - 🚫 <b>Fim da Repetição de Totais:</b> O subtotal não repete mais de forma indesejada em tabelas longas.<br>
-          - 📝 <b>Memorial Dinâmico:</b> O nome exato da patologia é integrado automaticamente ao título do memorial.
+          <strong style="color: #12D0FF;">Novidades da Versão 73:</strong><br>
+          - 📊 <b>Resumo Restaurado:</b> A relação dos valores individuais de cada patologia voltou ao Resumo Financeiro.<br>
+          - 📄 <b>Tabelas Seguras (Anti-Corte):</b> Colunas rigidamente formatadas para não vazar a borda direita da folha na impressão.<br>
+          - ⚓ <b>Rodapé:</b> Mantido fixado no fundo da última página com a técnica de tabela de espaçamento.
         </div>
       </span>
     </div>
@@ -299,6 +306,6 @@
     </div>
   </div>
 
-  <script src="script.js?v=72"></script>
+  <script src="script.js?v=73"></script>
 </body>
 </html>
