@@ -20,6 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let fotoAtualCropIndex = null;
   let assinaturaBase64 = null;
 
+  // Carregamento de base de dados
   fetch('SINAPI_ATUALIZADO.json').then(r => r.json()).then(d => baseSinapi = d).catch(() => {
       fetch('SINPLAN_ATUALIZADO.json').then(r => r.json()).then(d => baseSinapi = d).catch(e => console.warn("Base offline."));
   });
@@ -42,14 +43,15 @@ document.addEventListener('DOMContentLoaded', () => {
       'ceramica': { desc: 'Assentamento de Revestimento Cerâmico', unid: 'm²', preco: 92.00, busca: 'revestimento ceramico' }
   };
 
+  // TIPOLOGIAS ATUALIZADAS (V74) - ADEQUAÇÕES DE AUDITORIA E BLINDAGENS DE SINAPI
   const TIPOLOGIAS = {
       TRINCA_PASSIVA_LEVE: {
           nome: "Trinca/Fissura Passiva (Superficial/Leve)",
-          memorial: "1. Abertura de sulco superficial ao longo da diretriz da fissura (escarificação leve do revestimento).\n2. Limpeza enérgica com escova e ar comprimido para remoção de partículas soltas.\n3. Preenchimento do vão com argamassa polimérica ou resina epóxi de baixa viscosidade, visando a recomposição e estabilização superficial.\n4. Regularização da superfície para posterior recebimento de acabamento.",
+          memorial: "1. Abertura de sulco superficial ao longo da diretriz da fissura (escarificação leve do revestimento).\n2. Limpeza enérgica com escova e ar comprimido para remoção de partículas soltas.\n3. Preenchimento do vão com argamassa polimérica ou resina epóxi de baixa viscosidade, visando a recomposição e estabilização superficial.\n4. Regularização da superfície (localizada) para posterior recebimento de acabamento.",
           unidadeBase: "m", fatorArea: 0.5,
           composicao: [
               { desc: "Abertura de trinca/fissura superficial", unid: "m", precoUnit: 14.50, busca: "abertura trinca", mult: 1 },
-              { desc: "Preenchimento com argamassa polimérica / resina", unid: "m", precoUnit: 35.00, busca: "argamassa polimerica", mult: 1 }
+              { desc: "Preenchimento com argamassa polimérica / resina (Localizado)", unid: "m", precoUnit: 35.00, busca: "argamassa polimerica", mult: 1 }
           ]
       },
       TRINCA_PASSIVA_ESTRUTURAL: {
@@ -61,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
               { desc: "Injeção/Preenchimento com resina epóxi estrutural", unid: "m", precoUnit: 85.00, busca: "resina epoxi", mult: 1 },
               { desc: "Aço CA-50 para grampos de costura (1 a cada 30cm)", unid: "un", precoUnit: 8.50, busca: "aço ca-50", mult: "CEIL_GRAMPO" },
               { desc: "Adesivo estrutural epóxi (0.08kg por grampo)", unid: "kg", precoUnit: 115.00, busca: "adesivo estrutural epoxi", mult: "GRAMPO_X_008" },
-              { desc: "Chapisco e emboço localizado para regularização", unid: "m²", precoUnit: 52.00, busca: "reboco argamassa", mult: 0.5 }
+              { desc: "Chapisco e emboço para regularização (Localizado)", unid: "m²", precoUnit: 52.00, busca: "reboco argamassa", mult: 0.5 }
           ]
       },
       TRINCA_ATIVA: {
@@ -72,7 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
               { desc: "Abertura de junta/sulco em 'V' e limpeza", unid: "m", precoUnit: 22.00, busca: "abertura junta", mult: 1 },
               { desc: "Aplicação de fundo de junta (tarugo de polietileno)", unid: "m", precoUnit: 5.50, busca: "fundo de junta", mult: 1 },
               { desc: "Selamento com mastique elastomérico (PU) e primer", unid: "m", precoUnit: 62.00, busca: "selante poliuretano", mult: 1 },
-              { desc: "Emassamento com massa acrílica elastomérica", unid: "m²", precoUnit: 42.00, busca: "massa acrilica", mult: 0.5 }
+              { desc: "Emassamento com massa acrílica elastomérica (Localizado)", unid: "m²", precoUnit: 42.00, busca: "massa acrilica", mult: 0.5 }
           ]
       },
       UMIDADE_AGUA: {
@@ -80,7 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
           memorial: "1. Demolição do reboco e revestimento comprometido até a alvenaria nua, com margem de segurança de 30 a 50cm além da mancha visível.\n2. Limpeza da base.\n3. Aplicação de chapisco de aderência.\n4. Refazimento do emboço utilizando argamassa aditivada com impermeabilizante hidrófugo por cristalização.",
           unidadeBase: "m²", fatorArea: 1.0,
           composicao: [
-              { desc: "Demolição de reboco e limpeza de substrato", unid: "m²", precoUnit: 22.50, busca: "demolição reboco", mult: 1 },
+              { desc: "Demolição de reboco e limpeza de substrato (Localizado)", unid: "m²", precoUnit: 22.50, busca: "demolição reboco", mult: 1 },
               { desc: "Chapisco de aderência (SINAPI/TCPO)", unid: "m²", precoUnit: 12.00, busca: "chapisco", mult: 1 },
               { desc: "Reboco impermeável com aditivo hidrófugo", unid: "m²", precoUnit: 58.00, busca: "reboco impermeabilizante", mult: 1 }
           ]
@@ -107,27 +109,16 @@ document.addEventListener('DOMContentLoaded', () => {
               { desc: "Recomposição com graute tixotrópico estrutural", unid: "m²", precoUnit: 190.00, busca: "graute tixotropico", mult: 1 }
           ]
       },
-      REPOSICAO_PAVIMENTO: {
-          nome: "Reposição de Pavimento e Passeio",
-          memorial: "1. Recorte mecanizado e demolição da área afetada.\n2. Recomposição e compactação da base com BGS.\n3. Aplicação do revestimento superficial (CBUQ, Concreto ou Cerâmica) conforme o padrão original existente no local.",
-          unidadeBase: "m²", fatorArea: 1.0,
-          composicao: [
-              { desc: "Recorte e demolição manual de passeio e pavimento", unid: "m²", precoUnit: 23.30, busca: "demolição", mult: 1 },
-              { desc: "Recomposição com base de BGS", unid: "m²", precoUnit: 25.10, busca: "brita graduada", mult: 1 },
-              { desc: "Recomposição com Concreto Asfáltico (CBUQ)", unid: "m²", precoUnit: 89.50, busca: "concreto asfaltico", mult: 1 },
-              { desc: "Recomposição em Concreto Simples 15 MPa", unid: "m²", precoUnit: 75.30, busca: "concreto", mult: 1 },
-              { desc: "Recomposição de piso cerâmico c/ contrapiso", unid: "m²", precoUnit: 95.80, busca: "piso ceramico", mult: 1 }
-          ]
-      },
       RECALQUE_ESTACA_MEGA: {
           nome: "Recalque de Fundação (Reforço com Estaca Mega)",
-          memorial: "1. Mobilização de equipamentos e monitoramento da estrutura.\n2. Escavação manual e escoramento para abertura de poço.\n3. Cravação de estacas mega de concreto por macacagem.\n4. Encunhamento e concretagem do bloco de transição.\n5. Recomposição arquitetônica e remoção de entulho.",
+          memorial: "1. Mobilização de equipamentos e monitoramento da estrutura.\n2. Escavação manual e escoramento para abertura de poço.\n3. Cravação de estacas mega de concreto por macacagem.\n4. Encunhamento e concretagem do bloco de transição com cunhas metálicas.\n5. Recomposição arquitetônica e remoção de entulho.",
           unidadeBase: "un", fatorArea: 1.0, 
           composicao: [
-              { desc: "Mobilização de equipamento leve (Macaco Hidráulico)", unid: "un", precoUnit: 350.00, busca: "mobilizacao macaco hidraulico", mult: 1 },
-              { desc: "Escavação manual e escoramento de poço", unid: "un", precoUnit: 450.00, busca: "escavação manual", mult: 1 },
-              { desc: "Cravação de Estaca Mega de concreto (estimado 10m)", unid: "m", precoUnit: 320.00, busca: "estaca mega", mult: 10 },
-              { desc: "Encunhamento e grauteamento do bloco", unid: "un", precoUnit: 950.00, busca: "encunhamento", mult: 1 },
+              // Chaves FORCE_ usadas para blindar o orçamento de itens genéricos do SINAPI
+              { desc: "Mobilização de equipamento leve (Macaco Hidráulico)", unid: "un", precoUnit: 350.00, busca: "FORCE_MOBILIZACAO_MACACO", mult: 1 },
+              { desc: "Escavação manual de vala para bloco/poço", unid: "un", precoUnit: 180.00, busca: "FORCE_ESCAVACAO_MANUAL", mult: 1 },
+              { desc: "Cravação de Estaca Mega de concreto (estimado 10m)", unid: "m", precoUnit: 320.00, busca: "FORCE_ESTACA_MEGA", mult: 10 },
+              { desc: "Encunhamento com cunhas metálicas e graute de alta resistência", unid: "un", precoUnit: 950.00, busca: "FORCE_ENCUNHAMENTO_METALICO", mult: 1 },
               { desc: "Recomposição de contrapiso e piso cerâmico", unid: "m²", precoUnit: 150.00, busca: "contrapiso", mult: 2 },
               { desc: "Remoção de entulho / Caçamba (rateio)", unid: "un", precoUnit: 450.00, busca: "caçamba", mult: 0.5 }
           ]
@@ -154,7 +145,7 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   // =========================================================================
-  // SALVAMENTO E CARREGAMENTO (AUTO-SAVE)
+  // SALVAMENTO E CARREGAMENTO DE PROJETO (AUTO-SAVE COM DEBOUNCE)
   // =========================================================================
   let timeoutAutoSave;
   function autoSalvar() {
@@ -257,7 +248,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   document.getElementById('btnNovoProjeto').onclick = () => {
-      if(confirm("Tem certeza? Isso apagará todas as fotos e dados não salvos. Use isso para iniciar um projeto do zero ou para atualizar os preços.")) {
+      if(confirm("Tem certeza? Isso apagará todas as fotos e dados não salvos. Use isso para iniciar um projeto do zero ou para atualizar os preços do cache.")) {
           fotosSelecionadas = []; assinaturaBase64 = null;
           document.getElementById('form-vistoria').reset();
           document.getElementById('bdiGeral').value = "10.0";
@@ -315,7 +306,10 @@ document.addEventListener('DOMContentLoaded', () => {
           if (baseSinapi.length > 0) {
               const termoNorm = normalizarTexto(c.busca);
               let s = baseSinapi.find(i => normalizarTexto(i["TABELA DE CUSTOS SINTÉTICA"]).includes(termoNorm));
-              if (s) { preco = parsePreco(s["FIELD4"]); desc = s["TABELA DE CUSTOS SINTÉTICA"]; }
+              // Blindagem de itens estritos - O SINAPI não deve sobrescrevê-los
+              if (s && !c.busca.startsWith('FORCE_')) { 
+                  preco = parsePreco(s["FIELD4"]); desc = s["TABELA DE CUSTOS SINTÉTICA"]; 
+              }
           }
           foto.itensOrcamento.push({ desc, unid: c.unid, qtd: parseFloat(qtdFinal.toFixed(2)), preco, multRef: c.mult });
       });
@@ -337,7 +331,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function atualizarTotaisNoDOM() {
       let totalDiretoGlobal = 0;
-      let resumoHtml = `<h4 style="margin: 0 0 10px 0; color: #555;">Subtotais Diretos por Patologia:</h4><ul style="list-style: none; padding: 0; margin: 0; font-size: 0.9em; color: #333;">`;
+      let resumoHtml = `<h4 style="margin: 0 0 10px 0; color: #555;">Subtotais Diretos:</h4><ul style="list-style: none; padding: 0; margin: 0; font-size: 0.9em; color: #333;">`;
 
       fotosSelecionadas.forEach((foto, idx) => {
           let subtotalPatologia = 0;
@@ -369,12 +363,12 @@ document.addEventListener('DOMContentLoaded', () => {
       let totalComBdi = totalDiretoGlobal + valorBdi;
 
       resumoHtml += `</ul>
-        <div style="display: flex; justify-content: space-between; margin-top: 15px; font-size: 1.1em; color: #000; border-top: 1px solid #ccc; padding-top: 5px;">
+        <div style="display: flex; justify-content: space-between; margin-top: 10px; font-size: 1em; color: #000;">
             <span>Soma dos Custos Diretos:</span>
             <strong>R$ ${totalDiretoGlobal.toFixed(2).replace('.',',')}</strong>
         </div>
         <div style="display: flex; justify-content: space-between; margin-top: 5px; font-size: 1em; color: #12D0FF;">
-            <span>BDI Aplicado (${taxaBdi}%):</span>
+            <span>BDI (${taxaBdi}%):</span>
             <strong>+ R$ ${valorBdi.toFixed(2).replace('.',',')}</strong>
         </div>
       `;
@@ -394,9 +388,9 @@ document.addEventListener('DOMContentLoaded', () => {
           area = parseFloat(area.replace(',', '.'));
           if (!isNaN(area) && area > 0) {
               const a = ACABAMENTOS[f.acabamento];
-              // Remove o acabamento fracionado antigo
+              // Remove o acabamento fracionado antigo da composição (mantém apenas a base estrutural localizada)
               f.itensOrcamento = f.itensOrcamento.filter(it => !it.desc.includes(a.desc));
-              // Insere o novo pano inteiro travado (sem multRef)
+              // Insere o novo pano inteiro travado com o tamanho digitado
               f.itensOrcamento.push({ desc: a.desc + " (Pano Inteiro)", unid: a.unid, qtd: area, preco: a.preco, multRef: null });
               renderizarInterface();
               autoSalvar();
@@ -703,7 +697,7 @@ document.addEventListener('DOMContentLoaded', () => {
     autoSalvar();
   });
 
-  // --- GERAÇÃO DO PDF E FORMATAÇÃO DE TABELAS (ANTI-CORTE V73) ---
+  // --- GERAÇÃO DO PDF (ANTI-CORTE V73/74) ---
   btnGerarPDF.addEventListener('click', () => {
     const local = document.getElementById('localVistoria').value || 'Não informado';
     let dataF = '___/___/_____';
@@ -760,7 +754,6 @@ document.addEventListener('DOMContentLoaded', () => {
         somaDireta += sub;
         memHtml += `</table>`;
 
-        // Aqui o subtotal inteligente é inserido na última linha do tbody para não repetir nas quebras de página!
         linhas += `<tr style="background:#f0f0f0;"><td colspan="4" align="right" style="font-weight:bold; border: 1px solid #aaa; padding:3px;">Subtotal Direto:</td><td style="font-weight:bold; text-align:right; border: 1px solid #aaa; padding:3px;">R$ ${sub.toFixed(2).replace('.',',')}</td></tr>`;
 
         htmlResumoTotal += `
@@ -770,7 +763,7 @@ document.addEventListener('DOMContentLoaded', () => {
           </tr>
         `;
 
-        const legendaLinha = f.legenda ? `<tr><td colspan="5" style="border: 1px solid #aaa; padding: 4px; background:#fefefe; font-style:italic; font-size:8pt;"><strong>Legenda / Obs:</strong> ${f.legenda}</td></tr>` : '';
+        const legendaLinha = f.legenda ? `<tr><td colspan="5" style="border: 1px solid #aaa; padding: 6px; background:#fefefe; font-style:italic; font-size:8pt;"><strong>Legenda / Obs:</strong> ${f.legenda}</td></tr>` : '';
 
         corpo.innerHTML += `<div class=\"bloco-patologia\"><h4 style="font-family: Tahoma, Arial, sans-serif; font-size: 10pt; border-bottom:1px solid #ccc; padding-bottom:1px; margin-bottom:5px;">Patologia 0${idx+1} - ${f.tipo ? TIPOLOGIAS[f.tipo].nome : ''}${medTxt}</h4>
           <img src=\"${f.edited || f.preview}\" class=\"imagem-patologia-print\">
@@ -788,7 +781,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let bdiVal = somaDireta * (taxaBdi / 100);
     
-    // Injeção segura e definitiva da relação das patologias no PDF
     document.getElementById('bloco-total-geral').innerHTML = `
         <h4 style="font-family: Tahoma, Arial, sans-serif; font-size: 11pt; border-bottom: 1px solid #ccc; padding-bottom:2px; margin-top: 5px;">Resumo Financeiro Global</h4>
         <table style="width: 100%; border-collapse: collapse; font-family: Tahoma, Arial, sans-serif; font-size: 10pt;">
