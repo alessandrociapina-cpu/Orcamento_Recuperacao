@@ -42,6 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
       'ceramica': { desc: 'Assentamento de Revestimento Cerâmico', unid: 'm²', preco: 92.00, busca: 'revestimento ceramico' }
   };
 
+  // TIPOLOGIAS ATUALIZADAS (V76) - AÇO CA-50 EM KG E TÉCNICA SANDUÍCHE
   const TIPOLOGIAS = {
       TRINCA_PASSIVA_LEVE: {
           nome: "Trinca/Fissura Passiva (Superficial/Leve)",
@@ -59,7 +60,8 @@ document.addEventListener('DOMContentLoaded', () => {
           composicao: [
               { desc: "Abertura de trinca/fissura estrutural profunda", unid: "m", precoUnit: 24.00, busca: "abertura trinca", mult: 1 },
               { desc: "Injeção/Preenchimento com resina epóxi estrutural", unid: "m", precoUnit: 85.00, busca: "resina epoxi", mult: 1 },
-              { desc: "Aço CA-50 para grampos de costura (1 a cada 30cm)", unid: "un", precoUnit: 8.50, busca: "aço ca-50", mult: "CEIL_GRAMPO" },
+              // CORREÇÃO: Aço CA-50 em kg
+              { desc: "Armadura de aço CA-50 p/ grampos (corte, dobra e montagem)", unid: "kg", precoUnit: 15.00, busca: "aço ca-50", mult: "CEIL_GRAMPO_KG" },
               { desc: "Adesivo estrutural epóxi (0.08kg por grampo)", unid: "kg", precoUnit: 115.00, busca: "adesivo estrutural epoxi", mult: "GRAMPO_X_008" },
               { desc: "Chapisco e emboço para regularização (Localizado)", unid: "m²", precoUnit: 52.00, busca: "reboco argamassa", mult: 0.5 }
           ]
@@ -72,6 +74,8 @@ document.addEventListener('DOMContentLoaded', () => {
               { desc: "Abertura de junta/sulco em 'V' e limpeza", unid: "m", precoUnit: 22.00, busca: "abertura junta", mult: 1 },
               { desc: "Aplicação de fundo de junta (tarugo de polietileno)", unid: "m", precoUnit: 5.50, busca: "fundo de junta", mult: 1 },
               { desc: "Selamento com mastique elastomérico (PU) e primer", unid: "m", precoUnit: 62.00, busca: "selante poliuretano", mult: 1 },
+              // CORREÇÃO: Técnica Sanduíche para a tela
+              { desc: "Tratamento em 'sanduíche' com tela de poliéster e base coat", unid: "m", precoUnit: 35.00, busca: "tela poliester", mult: 1 },
               { desc: "Emassamento com massa acrílica elastomérica (Localizado)", unid: "m²", precoUnit: 42.00, busca: "massa acrilica", mult: 0.5 }
           ]
       },
@@ -109,14 +113,15 @@ document.addEventListener('DOMContentLoaded', () => {
       },
       RECALQUE_ESTACA_MEGA: {
           nome: "Recalque de Fundação (Reforço com Estaca Mega)",
-          memorial: "1. Mobilização de equipamentos e monitoramento da estrutura.\n2. Escavação manual e escoramento para abertura de poço.\n3. Cravação de estacas mega de concreto por macacagem (comprimento estimado, a ser confirmado in loco por leitura de manômetro/nega).\n4. Encunhamento e concretagem do bloco de transição com cunhas metálicas.\n5. Tratamento localizado de rachaduras na alvenaria.\n6. Recomposição arquitetônica (piso e pintura em pano inteiro) e remoção de entulho.",
+          memorial: "1. Mobilização de equipamentos e monitoramento da estrutura.\n2. Escavação manual e escoramento para abertura de poço.\n3. Cravação de estacas mega de concreto por macacagem (comprimento estimado, a ser confirmado in loco por leitura de manômetro/nega).\n4. Encunhamento e concretagem do bloco de transição com cunhas metálicas.\n5. Tratamento localizado de rachaduras na alvenaria com técnica sanduíche.\n6. Recomposição arquitetônica (piso e pintura em pano inteiro) e remoção de entulho.",
           unidadeBase: "un", fatorArea: 1.0, 
           composicao: [
               { desc: "Mobilização de equipamento leve (Macaco Hidráulico)", unid: "un", precoUnit: 350.00, busca: "FORCE_MOBILIZACAO_MACACO", mult: 1 },
               { desc: "Escavação manual de vala para bloco/poço", unid: "un", precoUnit: 180.00, busca: "FORCE_ESCAVACAO_MANUAL", mult: 1 },
               { desc: "Cravação de Estaca Mega de concreto (estimado 10m)", unid: "m", precoUnit: 320.00, busca: "FORCE_ESTACA_MEGA", mult: 10 },
               { desc: "Encunhamento com cunhas metálicas e graute de alta resistência", unid: "un", precoUnit: 950.00, busca: "FORCE_ENCUNHAMENTO_METALICO", mult: 1 },
-              { desc: "Tratamento de rachaduras na alvenaria (Abertura, tela e massa) - Local", unid: "m", precoUnit: 45.00, busca: "tratamento trincas", mult: 3 },
+              // CORREÇÃO: Técnica Sanduíche para tratamento de rachaduras decorrentes
+              { desc: "Tratamento de rachaduras em 'sanduíche' c/ tela de poliéster e argamassa (Local)", unid: "m", precoUnit: 45.00, busca: "tratamento trincas", mult: 3 },
               { desc: "Recomposição de contrapiso e piso cerâmico", unid: "m²", precoUnit: 150.00, busca: "contrapiso", mult: 2 },
               { desc: "Emassamento e Pintura de Acabamento da Parede (Pano Inteiro)", unid: "m²", precoUnit: 38.00, busca: "pintura latex", mult: 9 },
               { desc: "Remoção de entulho / Caçamba (rateio)", unid: "un", precoUnit: 450.00, busca: "caçamba", mult: 0.5 }
@@ -184,7 +189,7 @@ document.addEventListener('DOMContentLoaded', () => {
               document.getElementById('horaVistoria').value = p.hora || '';
               document.getElementById('nomeFiscal').value = p.fiscal || '';
               document.getElementById('cargoFiscal').value = p.cargo || 'Engenheiro Civil';
-              document.getElementById('bdiGeral').value = p.bdi || '20.0'; // Puxa do save ou fallback v75
+              document.getElementById('bdiGeral').value = p.bdi || '20.0';
               if(p.assinatura) {
                   assinaturaBase64 = p.assinatura;
                   document.getElementById('assinaturaStatus').style.display = 'inline-block';
@@ -196,7 +201,7 @@ document.addEventListener('DOMContentLoaded', () => {
               }
           } catch(e) { console.error("Erro ao ler Auto-Save"); }
       } else {
-          document.getElementById('bdiGeral').value = "20.0"; // Padrão v75 se não houver save
+          document.getElementById('bdiGeral').value = "20.0";
       }
   }
   
@@ -249,7 +254,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   document.getElementById('btnNovoProjeto').onclick = () => {
-      if(confirm("Tem certeza? Isso apagará todas as fotos e dados não salvos da tela atual. Use isso para iniciar um projeto do zero ou para atualizar os preços do cache.")) {
+      if(confirm("Tem certeza? Isso apagará todas as fotos e dados não salvos. Use isso para iniciar um projeto do zero ou para atualizar os preços do cache.")) {
           fotosSelecionadas = []; assinaturaBase64 = null;
           document.getElementById('form-vistoria').reset();
           document.getElementById('bdiGeral').value = "20.0";
@@ -298,9 +303,15 @@ document.addEventListener('DOMContentLoaded', () => {
       
       TIPOLOGIAS[foto.tipo].composicao.forEach(c => {
           let qtdFinal = m;
-          if (c.mult === "CEIL_GRAMPO") qtdFinal = Math.ceil(m / 0.3);
-          else if (c.mult === "GRAMPO_X_008") qtdFinal = Math.ceil(m / 0.3) * 0.08;
-          else if (typeof c.mult === 'number') qtdFinal = m * c.mult;
+          if (c.mult === "CEIL_GRAMPO") {
+              qtdFinal = Math.ceil(m / 0.3);
+          } else if (c.mult === "CEIL_GRAMPO_KG") { // Nova lógica para KG de Aço
+              qtdFinal = Math.ceil(m / 0.3) * 0.16; // 0.16 kg por grampo
+          } else if (c.mult === "GRAMPO_X_008") {
+              qtdFinal = Math.ceil(m / 0.3) * 0.08;
+          } else if (typeof c.mult === 'number') {
+              qtdFinal = m * c.mult;
+          }
 
           let preco = c.precoUnit;
           let desc = c.desc;
@@ -331,7 +342,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function atualizarTotaisNoDOM() {
       let totalDiretoGlobal = 0;
-      let resumoHtml = `<h4 style="margin: 0 0 10px 0; color: #555;">Subtotais Diretos:</h4><ul style="list-style: none; padding: 0; margin: 0; font-size: 0.9em; color: #333;">`;
+      let resumoHtml = `<h4 style="margin: 0 0 10px 0; color: #555;">Subtotais Diretos por Patologia:</h4><ul style="list-style: none; padding: 0; margin: 0; font-size: 0.9em; color: #333;">`;
 
       fotosSelecionadas.forEach((foto, idx) => {
           let subtotalPatologia = 0;
@@ -363,12 +374,12 @@ document.addEventListener('DOMContentLoaded', () => {
       let totalComBdi = totalDiretoGlobal + valorBdi;
 
       resumoHtml += `</ul>
-        <div style="display: flex; justify-content: space-between; margin-top: 10px; font-size: 1em; color: #000;">
+        <div style="display: flex; justify-content: space-between; margin-top: 15px; font-size: 1.1em; color: #000; border-top: 1px solid #ccc; padding-top: 5px;">
             <span>Soma dos Custos Diretos:</span>
             <strong>R$ ${totalDiretoGlobal.toFixed(2).replace('.',',')}</strong>
         </div>
         <div style="display: flex; justify-content: space-between; margin-top: 5px; font-size: 1em; color: #12D0FF;">
-            <span>BDI (${taxaBdi}%):</span>
+            <span>BDI Aplicado (${taxaBdi}%):</span>
             <strong>+ R$ ${valorBdi.toFixed(2).replace('.',',')}</strong>
         </div>
       `;
@@ -695,7 +706,7 @@ document.addEventListener('DOMContentLoaded', () => {
     autoSalvar();
   });
 
-  // --- GERAÇÃO DO PDF ---
+  // --- GERAÇÃO DO PDF E FORMATAÇÃO DE TABELAS ---
   btnGerarPDF.addEventListener('click', () => {
     const local = document.getElementById('localVistoria').value || 'Não informado';
     let dataF = '___/___/_____';
@@ -744,6 +755,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             let formTxt = "Inserção manual";
             if (it.multRef === "CEIL_GRAMPO") formTxt = `Arred.Teto(${f.medidaPrincipal} / 0.3)`;
+            else if (it.multRef === "CEIL_GRAMPO_KG") formTxt = `Arred.Teto(${f.medidaPrincipal} / 0.3) x 0.16 kg`;
             else if (it.multRef === "GRAMPO_X_008") formTxt = `Grampos x 0.08 kg`;
             else if (it.multRef !== null && it.multRef !== undefined) formTxt = `${f.medidaPrincipal} x ${it.multRef} (Fator)`;
 
