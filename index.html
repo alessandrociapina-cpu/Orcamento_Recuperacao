@@ -12,7 +12,7 @@
   <link href="cropper.min.css" rel="stylesheet">
   <script src="cropper.min.js"></script>
   
-  <link rel="stylesheet" href="style.css?v=74"/>
+  <link rel="stylesheet" href="style.css?v=75"/>
   
   <style>
     /* ==========================================================
@@ -22,7 +22,7 @@
     body { margin: 0; padding: 0; overflow-x: hidden; font-family: Tahoma, Arial, sans-serif; background-color: #f4f4f4; color: #333; } 
     .container { max-width: 900px; margin: auto; padding: 15px; background: #fff; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
 
-    /* JANELA FLUTUANTE DE ATUALIZAÇÃO (TOOLTIP PADRÃO V34) */
+    /* JANELA FLUTUANTE DE ATUALIZAÇÃO (TOOLTIP) */
     .info-tooltip-container { position: relative; display: inline-block; cursor: pointer; margin-left: 5px; outline: none; }
     .info-icon { font-size: 1.1em; color: #12D0FF; transition: transform 0.2s; display: inline-block; }
     .info-tooltip-container:hover .info-icon { transform: scale(1.1); }
@@ -104,7 +104,7 @@
     .editor-toolbar { margin-bottom: 10px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; background: #f8f9fa; padding: 10px; border-radius: 5px; border: 1px solid #ddd; }
 
     /* ==========================================================
-       CSS ABSOLUTO PARA IMPRESSÃO DO PDF (ANTI-CORTE V73/74)
+       CSS ABSOLUTO PARA IMPRESSÃO DO PDF (ANTI-CORTE)
        ========================================================== */
     @media print {
       @page { margin: 15mm 10mm 15mm 10mm; size: A4 portrait; }
@@ -155,15 +155,14 @@
     </div>
     
     <div class="versao-info" style="text-align: center; font-size: 0.8em; color: #6c757d; margin-top: -15px; margin-bottom: 20px;">
-      Versão 74 | Ajustes de Auditoria (Estacas, Escavação e Pavimentos)
+      Versão 75 | Adequação de Fundações (Nega/Manômetro) e BDI
       <span class="info-tooltip-container" tabindex="0">
         <span class="info-icon">ℹ️</span>
         <div class="info-tooltip-text">
-          <strong style="color: #12D0FF;">Novidades da Versão 74:</strong><br>
-          - 🗑️ <b>Adequação Sabesp:</b> Removida a tipologia de reposição de pavimento asfáltico.<br>
-          - 🔒 <b>Blindagem de Encunhamento:</b> Forçado o uso de cunhas metálicas (R$ 950,00) na Estaca Mega, impedindo falhas de busca do SINAPI (tijolos).<br>
-          - ⛏️ <b>Escavação:</b> Corrigida precificação de escavação manual (R$ 180,00) para fundações.<br>
-          - 🖌️ <b>Pano Inteiro Mestre:</b> Mantém a separação técnica correta: reparo estrutural fica na faixa localizada, apenas a pintura assume a área integral.
+          <strong style="color: #12D0FF;">Novidades da Versão 75:</strong><br>
+          - ⚙️ <b>Estaca Mega Atualizada:</b> Incluída leitura de nega/manômetro no memorial.<br>
+          - 🧱 <b>Pano Inteiro vs Localizado:</b> Tratamento de trincas na alvenaria foi integrado à Mega, separando reparo localizado da pintura geral.<br>
+          - 📈 <b>BDI Realista:</b> Taxa padrão alterada de 10% para 20% para cobrir margens reais de mercado.
         </div>
       </span>
     </div>
@@ -200,7 +199,7 @@
           </div>
         </div>
         <div class="linha-dupla" style="background: #eef2f5; padding: 10px; border-radius: 5px; border: 1px solid #ccc;">
-          <div class="campo-metade"><label style="color: #003B7E;">BDI Geral (%):</label><input type="number" id="bdiGeral" value="10.0" step="0.1"></div>
+          <div class="campo-metade"><label style="color: #003B7E;">BDI Geral (%):</label><input type="number" id="bdiGeral" value="20.0" step="0.1"></div>
           <div class="campo-metade" style="justify-content: center;"><small style="color: #555;">Aplicado sobre a soma dos custos diretos.</small></div>
         </div>
         <div class="caixa-assinatura" style="background: #eef2f5; padding: 15px; border-radius: 5px; border: 1px solid #ccc;">
@@ -292,10 +291,10 @@
     <div class="modal-conteudo">
       <h3 style="color:#12D0FF; margin-top: 0;">✂️ Recortar e Girar</h3>
       <div class="editor-toolbar" style="justify-content: center;">
-        <button id="btnCropLivre" class="botao-secundario" style="padding:6px 10px; border:1px solid #ccc; border-radius:4px; cursor:pointer;">⧉ Livre</button>
-        <button id="btnCrop43" class="botao-secundario" style="padding:6px 10px; border:1px solid #ccc; border-radius:4px; cursor:pointer;">📺 4:3</button>
-        <button id="btnRotateL" class="botao-secundario" style="padding:6px 10px; border:1px solid #ccc; border-radius:4px; cursor:pointer;">↺ Esq</button>
-        <button id="btnRotateR" class="botao-secundario" style="padding:6px 10px; border:1px solid #ccc; border-radius:4px; cursor:pointer;">↻ Dir</button>
+        <button id="btnCropLivre" class="botao-secundario">⧉ Livre</button>
+        <button id="btnCrop43" class="botao-secundario">📺 4:3</button>
+        <button id="btnRotateL" class="botao-secundario">↺ Esq</button>
+        <button id="btnRotateR" class="botao-secundario">↻ Dir</button>
       </div>
       <div style="flex-grow: 1; display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 15px; background: #222;">
         <img id="imgCrop">
@@ -307,6 +306,6 @@
     </div>
   </div>
 
-  <script src="script.js?v=74"></script>
+  <script src="script.js?v=75"></script>
 </body>
 </html>
