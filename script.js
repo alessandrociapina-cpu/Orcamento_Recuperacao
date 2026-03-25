@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
       'ceramica': { desc: 'Assentamento de Revestimento Cerâmico', unid: 'm²', preco: 92.00, busca: 'revestimento ceramico' }
   };
 
-  // TIPOLOGIAS ATUALIZADAS (V76) - AÇO CA-50 EM KG E TÉCNICA SANDUÍCHE
+  // TIPOLOGIAS ATUALIZADAS (V77) - AÇO CA-50 EM KG FORÇADO
   const TIPOLOGIAS = {
       TRINCA_PASSIVA_LEVE: {
           nome: "Trinca/Fissura Passiva (Superficial/Leve)",
@@ -60,8 +60,8 @@ document.addEventListener('DOMContentLoaded', () => {
           composicao: [
               { desc: "Abertura de trinca/fissura estrutural profunda", unid: "m", precoUnit: 24.00, busca: "abertura trinca", mult: 1 },
               { desc: "Injeção/Preenchimento com resina epóxi estrutural", unid: "m", precoUnit: 85.00, busca: "resina epoxi", mult: 1 },
-              // CORREÇÃO: Aço CA-50 em kg
-              { desc: "Armadura de aço CA-50 p/ grampos (corte, dobra e montagem)", unid: "kg", precoUnit: 15.00, busca: "aço ca-50", mult: "CEIL_GRAMPO_KG" },
+              // Armadura rigorosamente blindada em kg
+              { desc: "Armadura de aço CA-50 p/ grampos (corte, dobra e montagem)", unid: "kg", precoUnit: 15.00, busca: "FORCE_ACO_CA50_KG", mult: "CEIL_GRAMPO_KG" },
               { desc: "Adesivo estrutural epóxi (0.08kg por grampo)", unid: "kg", precoUnit: 115.00, busca: "adesivo estrutural epoxi", mult: "GRAMPO_X_008" },
               { desc: "Chapisco e emboço para regularização (Localizado)", unid: "m²", precoUnit: 52.00, busca: "reboco argamassa", mult: 0.5 }
           ]
@@ -74,7 +74,6 @@ document.addEventListener('DOMContentLoaded', () => {
               { desc: "Abertura de junta/sulco em 'V' e limpeza", unid: "m", precoUnit: 22.00, busca: "abertura junta", mult: 1 },
               { desc: "Aplicação de fundo de junta (tarugo de polietileno)", unid: "m", precoUnit: 5.50, busca: "fundo de junta", mult: 1 },
               { desc: "Selamento com mastique elastomérico (PU) e primer", unid: "m", precoUnit: 62.00, busca: "selante poliuretano", mult: 1 },
-              // CORREÇÃO: Técnica Sanduíche para a tela
               { desc: "Tratamento em 'sanduíche' com tela de poliéster e base coat", unid: "m", precoUnit: 35.00, busca: "tela poliester", mult: 1 },
               { desc: "Emassamento com massa acrílica elastomérica (Localizado)", unid: "m²", precoUnit: 42.00, busca: "massa acrilica", mult: 0.5 }
           ]
@@ -120,7 +119,6 @@ document.addEventListener('DOMContentLoaded', () => {
               { desc: "Escavação manual de vala para bloco/poço", unid: "un", precoUnit: 180.00, busca: "FORCE_ESCAVACAO_MANUAL", mult: 1 },
               { desc: "Cravação de Estaca Mega de concreto (estimado 10m)", unid: "m", precoUnit: 320.00, busca: "FORCE_ESTACA_MEGA", mult: 10 },
               { desc: "Encunhamento com cunhas metálicas e graute de alta resistência", unid: "un", precoUnit: 950.00, busca: "FORCE_ENCUNHAMENTO_METALICO", mult: 1 },
-              // CORREÇÃO: Técnica Sanduíche para tratamento de rachaduras decorrentes
               { desc: "Tratamento de rachaduras em 'sanduíche' c/ tela de poliéster e argamassa (Local)", unid: "m", precoUnit: 45.00, busca: "tratamento trincas", mult: 3 },
               { desc: "Recomposição de contrapiso e piso cerâmico", unid: "m²", precoUnit: 150.00, busca: "contrapiso", mult: 2 },
               { desc: "Emassamento e Pintura de Acabamento da Parede (Pano Inteiro)", unid: "m²", precoUnit: 38.00, busca: "pintura latex", mult: 9 },
@@ -149,9 +147,11 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   // =========================================================================
-  // SALVAMENTO E CARREGAMENTO DE PROJETO (AUTO-SAVE COM DEBOUNCE)
+  // SALVAMENTO E CARREGAMENTO DE PROJETO (CHAVE FORÇADA v77)
   // =========================================================================
+  const STORAGE_KEY = 'projetoPatologiasSabesp_v77';
   let timeoutAutoSave;
+  
   function autoSalvar() {
       const status = document.getElementById('statusAutoSave');
       status.style.color = '#ffc107';
@@ -170,7 +170,7 @@ document.addEventListener('DOMContentLoaded', () => {
                   assinatura: assinaturaBase64,
                   fotos: fotosSelecionadas
               };
-              localStorage.setItem('projetoPatologiasSabesp', JSON.stringify(projeto));
+              localStorage.setItem(STORAGE_KEY, JSON.stringify(projeto));
               
               status.style.color = 'green';
               status.innerText = 'Projeto salvo automaticamente ✔';
@@ -180,7 +180,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function carregarDoLocalStorage() {
-      const salvo = localStorage.getItem('projetoPatologiasSabesp');
+      const salvo = localStorage.getItem(STORAGE_KEY);
       if (salvo) {
           try {
               const p = JSON.parse(salvo);
@@ -261,7 +261,7 @@ document.addEventListener('DOMContentLoaded', () => {
           document.getElementById('assinaturaStatus').style.display = 'none';
           document.getElementById('btnRemoverAssinatura').style.display = 'none';
           renderizarInterface();
-          localStorage.removeItem('projetoPatologiasSabesp');
+          localStorage.removeItem(STORAGE_KEY);
       }
   };
 
@@ -305,8 +305,8 @@ document.addEventListener('DOMContentLoaded', () => {
           let qtdFinal = m;
           if (c.mult === "CEIL_GRAMPO") {
               qtdFinal = Math.ceil(m / 0.3);
-          } else if (c.mult === "CEIL_GRAMPO_KG") { // Nova lógica para KG de Aço
-              qtdFinal = Math.ceil(m / 0.3) * 0.16; // 0.16 kg por grampo
+          } else if (c.mult === "CEIL_GRAMPO_KG") {
+              qtdFinal = Math.ceil(m / 0.3) * 0.16; // Matemática corrigida para peso do aço CA-50
           } else if (c.mult === "GRAMPO_X_008") {
               qtdFinal = Math.ceil(m / 0.3) * 0.08;
           } else if (typeof c.mult === 'number') {
@@ -706,7 +706,7 @@ document.addEventListener('DOMContentLoaded', () => {
     autoSalvar();
   });
 
-  // --- GERAÇÃO DO PDF E FORMATAÇÃO DE TABELAS ---
+  // --- GERAÇÃO DO PDF (MEMORIAL PAGINADO E AÇO CORRIGIDO) ---
   btnGerarPDF.addEventListener('click', () => {
     const local = document.getElementById('localVistoria').value || 'Não informado';
     let dataF = '___/___/_____';
@@ -786,7 +786,21 @@ document.addEventListener('DOMContentLoaded', () => {
           </table>
         </div>`;
         
-        if(f.tipo) memorialTxt += `<h5 style="font-family: Tahoma, Arial, sans-serif; font-size: 10pt; margin-bottom:1mm;">Patologia 0${idx+1} - ${TIPOLOGIAS[f.tipo].nome}${medTxt}</h5><p style="font-family: Tahoma, Arial, sans-serif; text-align:justify; font-size:9.5pt; margin-top:0;">${TIPOLOGIAS[f.tipo].memorial}</p>${memHtml}<br>`;
+        // Bloqueio de quebra de página seguro para o memorial (v77)
+        if(f.tipo) {
+            memorialTxt += `
+            <div style="margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px dashed #ccc; page-break-inside: avoid;">
+                <h5 style="font-family: Tahoma, Arial, sans-serif; font-size: 10pt; margin-bottom:1mm; margin-top:0;">Patologia 0${idx+1} - ${TIPOLOGIAS[f.tipo].nome}${medTxt}</h5>
+                <p style="font-family: Tahoma, Arial, sans-serif; text-align:justify; font-size:9.5pt; margin-top:0;">${TIPOLOGIAS[f.tipo].memorial}</p>
+                ${memHtml}
+            </div>`;
+        } else {
+            memorialTxt += `
+            <div style="margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px dashed #ccc; page-break-inside: avoid;">
+                <h5 style="font-family: Tahoma, Arial, sans-serif; font-size: 10pt; margin-bottom:1mm; margin-top:0;">Patologia 0${idx+1}</h5>
+                <p style="font-family: Tahoma, Arial, sans-serif; text-align:justify; font-size:9.5pt; margin-top:0; color:#d9534f;">Nenhuma tipologia técnica ou composição definida para esta imagem.</p>
+            </div>`;
+        }
     });
 
     let bdiVal = somaDireta * (taxaBdi / 100);
@@ -806,7 +820,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let imgAssin = assinaturaBase64 ? `<img src="${assinaturaBase64}" class="assinatura-imagem-limpa">` : `<div style="height: 15mm; width: 100%; z-index:-1; position:relative;"></div>`; 
         
         document.getElementById('texto-memorial-impresso').innerHTML += `
-           <div class="assinaturas-container">
+           <div class="assinaturas-container" style="page-break-inside: avoid;">
               <div class="bloco-assinatura">
                   ${imgAssin}
                   <div class="linha-assinatura"></div>
