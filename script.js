@@ -20,7 +20,6 @@ document.addEventListener('DOMContentLoaded', () => {
   let fotoAtualCropIndex = null;
   let assinaturaBase64 = null;
 
-  // Carregamento de base de dados
   fetch('SINAPI_ATUALIZADO.json').then(r => r.json()).then(d => baseSinapi = d).catch(() => {
       fetch('SINPLAN_ATUALIZADO.json').then(r => r.json()).then(d => baseSinapi = d).catch(e => console.warn("Base offline."));
   });
@@ -43,7 +42,6 @@ document.addEventListener('DOMContentLoaded', () => {
       'ceramica': { desc: 'Assentamento de Revestimento Cerâmico', unid: 'm²', preco: 92.00, busca: 'revestimento ceramico' }
   };
 
-  // TIPOLOGIAS ATUALIZADAS (V74) - ADEQUAÇÕES DE AUDITORIA E BLINDAGENS DE SINAPI
   const TIPOLOGIAS = {
       TRINCA_PASSIVA_LEVE: {
           nome: "Trinca/Fissura Passiva (Superficial/Leve)",
@@ -111,15 +109,16 @@ document.addEventListener('DOMContentLoaded', () => {
       },
       RECALQUE_ESTACA_MEGA: {
           nome: "Recalque de Fundação (Reforço com Estaca Mega)",
-          memorial: "1. Mobilização de equipamentos e monitoramento da estrutura.\n2. Escavação manual e escoramento para abertura de poço.\n3. Cravação de estacas mega de concreto por macacagem.\n4. Encunhamento e concretagem do bloco de transição com cunhas metálicas.\n5. Recomposição arquitetônica e remoção de entulho.",
+          memorial: "1. Mobilização de equipamentos e monitoramento da estrutura.\n2. Escavação manual e escoramento para abertura de poço.\n3. Cravação de estacas mega de concreto por macacagem (comprimento estimado, a ser confirmado in loco por leitura de manômetro/nega).\n4. Encunhamento e concretagem do bloco de transição com cunhas metálicas.\n5. Tratamento localizado de rachaduras na alvenaria.\n6. Recomposição arquitetônica (piso e pintura em pano inteiro) e remoção de entulho.",
           unidadeBase: "un", fatorArea: 1.0, 
           composicao: [
-              // Chaves FORCE_ usadas para blindar o orçamento de itens genéricos do SINAPI
               { desc: "Mobilização de equipamento leve (Macaco Hidráulico)", unid: "un", precoUnit: 350.00, busca: "FORCE_MOBILIZACAO_MACACO", mult: 1 },
               { desc: "Escavação manual de vala para bloco/poço", unid: "un", precoUnit: 180.00, busca: "FORCE_ESCAVACAO_MANUAL", mult: 1 },
               { desc: "Cravação de Estaca Mega de concreto (estimado 10m)", unid: "m", precoUnit: 320.00, busca: "FORCE_ESTACA_MEGA", mult: 10 },
               { desc: "Encunhamento com cunhas metálicas e graute de alta resistência", unid: "un", precoUnit: 950.00, busca: "FORCE_ENCUNHAMENTO_METALICO", mult: 1 },
+              { desc: "Tratamento de rachaduras na alvenaria (Abertura, tela e massa) - Local", unid: "m", precoUnit: 45.00, busca: "tratamento trincas", mult: 3 },
               { desc: "Recomposição de contrapiso e piso cerâmico", unid: "m²", precoUnit: 150.00, busca: "contrapiso", mult: 2 },
+              { desc: "Emassamento e Pintura de Acabamento da Parede (Pano Inteiro)", unid: "m²", precoUnit: 38.00, busca: "pintura latex", mult: 9 },
               { desc: "Remoção de entulho / Caçamba (rateio)", unid: "un", precoUnit: 450.00, busca: "caçamba", mult: 0.5 }
           ]
       },
@@ -185,7 +184,7 @@ document.addEventListener('DOMContentLoaded', () => {
               document.getElementById('horaVistoria').value = p.hora || '';
               document.getElementById('nomeFiscal').value = p.fiscal || '';
               document.getElementById('cargoFiscal').value = p.cargo || 'Engenheiro Civil';
-              document.getElementById('bdiGeral').value = p.bdi || '10.0';
+              document.getElementById('bdiGeral').value = p.bdi || '20.0'; // Puxa do save ou fallback v75
               if(p.assinatura) {
                   assinaturaBase64 = p.assinatura;
                   document.getElementById('assinaturaStatus').style.display = 'inline-block';
@@ -196,6 +195,8 @@ document.addEventListener('DOMContentLoaded', () => {
                   renderizarInterface();
               }
           } catch(e) { console.error("Erro ao ler Auto-Save"); }
+      } else {
+          document.getElementById('bdiGeral').value = "20.0"; // Padrão v75 se não houver save
       }
   }
   
@@ -232,7 +233,7 @@ document.addEventListener('DOMContentLoaded', () => {
               document.getElementById('horaVistoria').value = p.hora || '';
               document.getElementById('nomeFiscal').value = p.fiscal || '';
               document.getElementById('cargoFiscal').value = p.cargo || 'Engenheiro Civil';
-              document.getElementById('bdiGeral').value = p.bdi || '10.0';
+              document.getElementById('bdiGeral').value = p.bdi || '20.0';
               if(p.assinatura) {
                   assinaturaBase64 = p.assinatura;
                   document.getElementById('assinaturaStatus').style.display = 'inline-block';
@@ -248,10 +249,10 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   document.getElementById('btnNovoProjeto').onclick = () => {
-      if(confirm("Tem certeza? Isso apagará todas as fotos e dados não salvos. Use isso para iniciar um projeto do zero ou para atualizar os preços do cache.")) {
+      if(confirm("Tem certeza? Isso apagará todas as fotos e dados não salvos da tela atual. Use isso para iniciar um projeto do zero ou para atualizar os preços do cache.")) {
           fotosSelecionadas = []; assinaturaBase64 = null;
           document.getElementById('form-vistoria').reset();
-          document.getElementById('bdiGeral').value = "10.0";
+          document.getElementById('bdiGeral').value = "20.0";
           document.getElementById('assinaturaStatus').style.display = 'none';
           document.getElementById('btnRemoverAssinatura').style.display = 'none';
           renderizarInterface();
@@ -306,7 +307,6 @@ document.addEventListener('DOMContentLoaded', () => {
           if (baseSinapi.length > 0) {
               const termoNorm = normalizarTexto(c.busca);
               let s = baseSinapi.find(i => normalizarTexto(i["TABELA DE CUSTOS SINTÉTICA"]).includes(termoNorm));
-              // Blindagem de itens estritos - O SINAPI não deve sobrescrevê-los
               if (s && !c.busca.startsWith('FORCE_')) { 
                   preco = parsePreco(s["FIELD4"]); desc = s["TABELA DE CUSTOS SINTÉTICA"]; 
               }
@@ -314,7 +314,7 @@ document.addEventListener('DOMContentLoaded', () => {
           foto.itensOrcamento.push({ desc, unid: c.unid, qtd: parseFloat(qtdFinal.toFixed(2)), preco, multRef: c.mult });
       });
 
-      if (foto.acabamento !== 'none') {
+      if (foto.acabamento && foto.acabamento !== 'none') {
           const a = ACABAMENTOS[foto.acabamento];
           let area = m * TIPOLOGIAS[foto.tipo].fatorArea;
           let preco = a.preco;
@@ -388,9 +388,7 @@ document.addEventListener('DOMContentLoaded', () => {
           area = parseFloat(area.replace(',', '.'));
           if (!isNaN(area) && area > 0) {
               const a = ACABAMENTOS[f.acabamento];
-              // Remove o acabamento fracionado antigo da composição (mantém apenas a base estrutural localizada)
               f.itensOrcamento = f.itensOrcamento.filter(it => !it.desc.includes(a.desc));
-              // Insere o novo pano inteiro travado com o tamanho digitado
               f.itensOrcamento.push({ desc: a.desc + " (Pano Inteiro)", unid: a.unid, qtd: area, preco: a.preco, multRef: null });
               renderizarInterface();
               autoSalvar();
@@ -697,7 +695,7 @@ document.addEventListener('DOMContentLoaded', () => {
     autoSalvar();
   });
 
-  // --- GERAÇÃO DO PDF (ANTI-CORTE V73/74) ---
+  // --- GERAÇÃO DO PDF ---
   btnGerarPDF.addEventListener('click', () => {
     const local = document.getElementById('localVistoria').value || 'Não informado';
     let dataF = '___/___/_____';
@@ -763,7 +761,7 @@ document.addEventListener('DOMContentLoaded', () => {
           </tr>
         `;
 
-        const legendaLinha = f.legenda ? `<tr><td colspan="5" style="border: 1px solid #aaa; padding: 6px; background:#fefefe; font-style:italic; font-size:8pt;"><strong>Legenda / Obs:</strong> ${f.legenda}</td></tr>` : '';
+        const legendaLinha = f.legenda ? `<tr><td colspan="5" style="border: 1px solid #aaa; padding: 4px; background:#fefefe; font-style:italic; font-size:8pt;"><strong>Legenda / Obs:</strong> ${f.legenda}</td></tr>` : '';
 
         corpo.innerHTML += `<div class=\"bloco-patologia\"><h4 style="font-family: Tahoma, Arial, sans-serif; font-size: 10pt; border-bottom:1px solid #ccc; padding-bottom:1px; margin-bottom:5px;">Patologia 0${idx+1} - ${f.tipo ? TIPOLOGIAS[f.tipo].nome : ''}${medTxt}</h4>
           <img src=\"${f.edited || f.preview}\" class=\"imagem-patologia-print\">
