@@ -12,7 +12,7 @@
   <link href="cropper.min.css" rel="stylesheet">
   <script src="cropper.min.js"></script>
   
-  <link rel="stylesheet" href="style.css?v=79"/>
+  <link rel="stylesheet" href="style.css?v=80"/>
   
   <style>
     /* ==========================================================
@@ -22,12 +22,12 @@
     body { margin: 0; padding: 0; overflow-x: hidden; font-family: Tahoma, Arial, sans-serif; background-color: #f4f4f4; color: #333; } 
     .container { max-width: 900px; margin: auto; padding: 15px; background: #fff; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
 
-    /* JANELA FLUTUANTE DE ATUALIZAÇÃO (TOOLTIP) */
+    /* JANELA FLUTUANTE DE ATUALIZAÇÃO (TOOLTIP PADRÃO V34) */
     .info-tooltip-container { position: relative; display: inline-block; cursor: pointer; margin-left: 5px; outline: none; }
     .info-icon { font-size: 1.1em; color: #12D0FF; transition: transform 0.2s; display: inline-block; }
     .info-tooltip-container:hover .info-icon { transform: scale(1.1); }
     .info-tooltip-text {
-      visibility: hidden; width: 320px; background-color: #343a40; color: #fff; text-align: left;
+      visibility: hidden; width: 340px; background-color: #343a40; color: #fff; text-align: left;
       border-radius: 6px; padding: 12px; position: absolute; z-index: 1001;
       top: 150%; left: 50%; transform: translateX(-50%); opacity: 0; transition: opacity 0.3s;
       font-size: 0.95em; box-shadow: 0 4px 12px rgba(0,0,0,0.2); pointer-events: none; line-height: 1.4;
@@ -71,10 +71,10 @@
 
     /* TABELA COM SCROLL SEGURO NO CELULAR */
     .tabela-wrapper { width: 100%; max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; border: 1px solid #ddd; border-radius: 4px; margin-top: 5px; }
-    .tabela-modular { width: 100%; border-collapse: collapse; font-size: 0.85em; min-width: 500px; }
+    .tabela-modular { width: 100%; border-collapse: collapse; font-size: 0.85em; min-width: 600px; }
     .tabela-modular th, .tabela-modular td { padding: 6px; border: 1px solid #ccc; text-align: left; }
     .tabela-modular th { background-color: #e9ecef; }
-    .tabela-modular th:nth-child(1) { min-width: 180px; }
+    .tabela-modular th:nth-child(1) { min-width: 220px; }
     .tabela-modular th:nth-child(2) { min-width: 50px; }
     .tabela-modular th:nth-child(3) { min-width: 80px; }
     .tabela-modular input[type="number"] { width: 70px; padding: 4px; border: 1px solid #aaa; border-radius: 3px; }
@@ -104,7 +104,7 @@
     .editor-toolbar { margin-bottom: 10px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; background: #f8f9fa; padding: 10px; border-radius: 5px; border: 1px solid #ddd; }
 
     /* ==========================================================
-       CSS ABSOLUTO PARA IMPRESSÃO DO PDF (ANTI-CORTE E COMPACTO)
+       CSS ABSOLUTO PARA IMPRESSÃO DO PDF (ANTI-CORTE V80)
        ========================================================== */
     @media print {
       @page { margin: 15mm 10mm 15mm 10mm; size: A4 portrait; }
@@ -118,15 +118,16 @@
       
       #area-relatorio { display: block !important; width: 100%; font-family: Tahoma, Arial, sans-serif; font-size: 10pt; color: #000; text-align: justify; box-sizing: border-box; }
       
+      /* Tabela rigorosamente travada na largura da página */
       .tabela-pdf { width: 100% !important; max-width: 100% !important; border-collapse: collapse; font-size: 8pt; margin-top: 2mm; margin-bottom: 2mm; table-layout: fixed; }
       .tabela-pdf th, .tabela-pdf td { border: 1px solid #666; padding: 3px; word-wrap: break-word; overflow-wrap: break-word; }
       .tabela-pdf th { background-color: #f0f0f0 !important; -webkit-print-color-adjust: exact; color: #000; font-weight: bold; text-align: center; }
       
-      .tabela-pdf th:nth-child(1), .tabela-pdf td:nth-child(1) { width: 46%; text-align: left; }
+      .tabela-pdf th:nth-child(1), .tabela-pdf td:nth-child(1) { width: 44%; text-align: left; }
       .tabela-pdf th:nth-child(2), .tabela-pdf td:nth-child(2) { width: 12%; text-align: center; }
       .tabela-pdf th:nth-child(3), .tabela-pdf td:nth-child(3) { width: 12%; text-align: center; }
-      .tabela-pdf th:nth-child(4), .tabela-pdf td:nth-child(4) { width: 15%; text-align: right; }
-      .tabela-pdf th:nth-child(5), .tabela-pdf td:nth-child(5) { width: 15%; text-align: right; }
+      .tabela-pdf th:nth-child(4), .tabela-pdf td:nth-child(4) { width: 16%; text-align: right; }
+      .tabela-pdf th:nth-child(5), .tabela-pdf td:nth-child(5) { width: 16%; text-align: right; }
       
       .bloco-patologia { page-break-after: always; padding-top: 2mm; width: 100%; box-sizing: border-box; overflow: hidden; }
       .bloco-patologia:last-of-type { page-break-after: auto; } 
@@ -152,14 +153,15 @@
     </div>
     
     <div class="versao-info" style="text-align: center; font-size: 0.8em; color: #6c757d; margin-top: -15px; margin-bottom: 20px;">
-      Versão 79 | Motor Pericial: Rastreabilidade, Edição Segura e Metadados
+      Versão 80 | Motor Pericial Avançado: Rastreabilidade, Taxonomia e Auditoria
       <span class="info-tooltip-container" tabindex="0">
         <span class="info-icon">ℹ️</span>
         <div class="info-tooltip-text">
-          <strong style="color: #12D0FF;">Novidades da Versão 79:</strong><br>
-          - 🛡️ <b>Rastreabilidade:</b> Separação estrita entre itens automáticos e itens manuais. Nada que você incluir manualmente será perdido.<br>
-          - 💾 <b>Edição Segura:</b> Se você alterar a quantidade de um item, o sistema travará a alteração e não a apagará em caso de recálculo.<br>
-          - ⚙️ <b>Regras Explícitas:</b> Fórmulas matemáticas (como o aço CA-50) substituíram as macros ocultas de código, garantindo total clareza no memorial do PDF.
+          <strong style="color: #12D0FF;">Novidades da Versão 80:</strong><br>
+          - 🔐 <b>Busca por Código:</b> Fim da busca frágil por texto. Itens agora mapeiam diretamente os códigos do SINAPI para garantia pericial.<br>
+          - 🧮 <b>Regras Explícitas:</b> Fórmulas de conversão do Aço CA-50 em KG estão parametrizadas e impressas no memorial.<br>
+          - 🛡️ <b>Metadados e Arredondamento:</b> Tipos de itens (Verba, Insumo, Serviço) com regras rígidas de mínimo técnico e limites de arredondamento.<br>
+          - 📊 <b>Memorial do BDI:</b> Campo exclusivo para justificar o percentual de risco adotado.
         </div>
       </span>
     </div>
@@ -172,7 +174,7 @@
       <button type="button" id="btnSalvarProjeto" class="botao-acao-projeto">💾 Salvar Projeto (Arquivo)</button>
       <label for="inputCarregarProjeto" class="botao-acao-projeto-carregar">📂 Carregar Projeto</label>
       <input type="file" id="inputCarregarProjeto" accept=".json" style="display: none;">
-      <button type="button" id="btnNovoProjeto" class="botao-secundario" style="flex: 1 1 100%; border: 1px solid #d9534f; color: #d9534f;">📄 Limpar / Novo Projeto</button>
+      <button type="button" id="btnNovoProjeto" class="botao-secundario" style="flex: 1 1 100%; border: 1px solid #d9534f; color: #d9534f;">📄 Limpar / Novo Projeto (Zerar Cache)</button>
     </div>
 
     <div class="secao-entrada no-print">
@@ -196,14 +198,20 @@
           </div>
         </div>
         <div class="linha-dupla" style="background: #eef2f5; padding: 10px; border-radius: 5px; border: 1px solid #ccc;">
-          <div class="campo-metade"><label style="color: #003B7E;">BDI Geral (%):</label><input type="number" id="bdiGeral" value="20.0" step="0.1"></div>
-          <div class="campo-metade" style="justify-content: center;"><small style="color: #555;">Aplicado sobre a soma dos custos diretos.</small></div>
+          <div class="campo-metade">
+              <label style="color: #003B7E;">BDI Geral (%):</label>
+              <input type="number" id="bdiGeral" value="20.0" step="0.1">
+          </div>
+          <div class="campo-metade">
+              <label style="color: #003B7E;">Justificativa/Critério do BDI:</label>
+              <input type="text" id="justificativaBdi" value="Taxa padrão para recuperação com risco geológico e encargos">
+          </div>
         </div>
         <div class="caixa-assinatura" style="background: #eef2f5; padding: 15px; border-radius: 5px; border: 1px solid #ccc;">
             <label style="display:flex; align-items:center; gap:5px;"><input type="checkbox" id="incluirAssinatura" checked> 📝 Gerar bloco de assinatura no final do PDF</label>
             <div style="margin-top: 10px;">
                 <input type="file" id="imagemAssinatura" accept="image/*" style="display:none;">
-                <label for="imagemAssinatura" class="botao-secundario" style="padding:8px 12px; cursor:pointer; background:#fff; border:1px solid #ccc; border-radius:3px;">📎 Anexar Assinatura Digital</label>
+                <label for="imagemAssinatura" class="botao-secundario" id="btnAssinaturaLabel" style="padding:8px 12px; cursor:pointer; background:#fff; border:1px solid #ccc; border-radius:3px;">📎 Anexar Assinatura Digital</label>
                 <span id="assinaturaStatus" style="display:none; color:green; font-weight:bold; margin-left: 10px;">✔ Carregada</span>
                 <button type="button" id="btnRemoverAssinatura" style="display:none; border:none; background:none; color:red; cursor:pointer;">✖</button>
             </div>
@@ -245,8 +253,7 @@
         </tbody>
         <tfoot style="display: table-footer-group;">
           <tr>
-            <td style="height: 25mm; border: none;"></td>
-          </tr>
+            <td style="height: 25mm; border: none;"></td> </tr>
         </tfoot>
       </table>
       
@@ -304,6 +311,6 @@
     </div>
   </div>
 
-  <script src="script.js?v=79"></script>
+  <script src="script.js?v=80"></script>
 </body>
 </html>
