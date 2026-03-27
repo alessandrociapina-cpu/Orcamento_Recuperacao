@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
       'ceramica': { desc: 'Assentamento de Revestimento Cerâmico', unid: 'm²', preco: 92.00, busca: 'revestimento ceramico' }
   };
 
-  // TIPOLOGIAS ATUALIZADAS (V77) - AÇO CA-50 EM KG FORÇADO
+  // TIPOLOGIAS ATUALIZADAS (V78) - CPU ANALÍTICA COM JUSTIFICATIVA DE CONSUMO
   const TIPOLOGIAS = {
       TRINCA_PASSIVA_LEVE: {
           nome: "Trinca/Fissura Passiva (Superficial/Leve)",
@@ -54,15 +54,16 @@ document.addEventListener('DOMContentLoaded', () => {
           ]
       },
       TRINCA_PASSIVA_ESTRUTURAL: {
-          nome: "Trinca Passiva (Estrutural/Profunda)",
-          memorial: "1. Abertura de sulco ao longo da diretriz da fissura e escarificação mecânica profunda do substrato.\n2. Limpeza enérgica com escova de aço e jato de ar comprimido.\n3. Preenchimento estrutural do vão com resina epóxi de baixa viscosidade (consumo estim. 0,30 kg/m), visando o restabelecimento do monolitismo da peça estrutural.\n4. Inserção transversal de armadura em 'Z' (costura com grampos de aço) a cada 30cm.\n5. Ancoragem com adesivo estrutural de base epóxi para travamento mecânico das bordas.\n6. Chapisco e emboço localizado.",
+          nome: "Trinca Passiva (Estrutural/Profunda) - CPU Analítica",
+          memorial: "1. Abertura de vão em 'V' ao longo da diretriz da fissura e escarificação mecânica profunda do substrato.\n2. Limpeza enérgica com escova de aço e jato de ar comprimido para remoção do pó.\n3. Furação transversal e inserção de armadura em 'Z' (costura com 4 grampos de aço CA-50 por metro, a cada 25cm).\n4. Ancoragem dos grampos e pincelamento da cava com adesivo estrutural de base epóxi bicomponente.\n5. Preenchimento estrutural do vão com graute tixotrópico ou argamassa polimérica, visando o restabelecimento do monolitismo da peça.\n6. Chapisco e emboço localizado para regularização.\n\n* Justificativa de Consumo (Por metro linear):\n- Aço CA-50 (Ø 8,0mm): 4 grampos/m x 60cm/grampo x 0,395 kg/m = 0,95 kg/m.\n- Adesivo Epóxi: 4 grampos/m x 150g/grampo = 0,60 kg/m.\n- Graute Tixotrópico: Preenchimento do vão 'V' (3x3cm) e cobrimento = 3,00 kg/m.\n- Mão de Obra: Tempo de escarificação, furação, limpeza e chumbamento = 1,5h Pedreiro + 1,0h Servente.",
           unidadeBase: "m", fatorArea: 0.5,
           composicao: [
-              { desc: "Abertura de trinca/fissura estrutural profunda", unid: "m", precoUnit: 24.00, busca: "abertura trinca", mult: 1 },
-              { desc: "Injeção/Preenchimento com resina epóxi estrutural", unid: "m", precoUnit: 85.00, busca: "resina epoxi", mult: 1 },
-              // Armadura rigorosamente blindada em kg
-              { desc: "Armadura de aço CA-50 p/ grampos (corte, dobra e montagem)", unid: "kg", precoUnit: 15.00, busca: "FORCE_ACO_CA50_KG", mult: "CEIL_GRAMPO_KG" },
-              { desc: "Adesivo estrutural epóxi (0.08kg por grampo)", unid: "kg", precoUnit: 115.00, busca: "adesivo estrutural epoxi", mult: "GRAMPO_X_008" },
+              { desc: "Mão de Obra - Pedreiro com Encargos Complementares", unid: "h", precoUnit: 28.50, busca: "pedreiro com encargos", mult: 1.5 },
+              { desc: "Mão de Obra - Servente com Encargos Complementares", unid: "h", precoUnit: 22.30, busca: "servente com encargos", mult: 1.0 },
+              { desc: "Armadura de Aço CA-50, Ø 8,0 mm (Vergalhão cortado/dobrado p/ grampos)", unid: "kg", precoUnit: 15.00, busca: "FORCE_ACO_CA50_KG", mult: 0.95 },
+              { desc: "Adesivo Estrutural Epóxi Bicomponente", unid: "kg", precoUnit: 115.00, busca: "adesivo estrutural epoxi", mult: 0.60 },
+              { desc: "Graute Tixotrópico / Argamassa Polimérica", unid: "kg", precoUnit: 6.50, busca: "graute tixotropico", mult: 3.0 },
+              { desc: "Lixa, disco de corte e brocas (Rateio/Desgaste)", unid: "un", precoUnit: 45.00, busca: "disco de corte", mult: 0.05 },
               { desc: "Chapisco e emboço para regularização (Localizado)", unid: "m²", precoUnit: 52.00, busca: "reboco argamassa", mult: 0.5 }
           ]
       },
@@ -147,9 +148,9 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   // =========================================================================
-  // SALVAMENTO E CARREGAMENTO DE PROJETO (CHAVE FORÇADA v77)
+  // SALVAMENTO E CARREGAMENTO DE PROJETO (CHAVE FORÇADA v78)
   // =========================================================================
-  const STORAGE_KEY = 'projetoPatologiasSabesp_v77';
+  const STORAGE_KEY = 'projetoPatologiasSabesp_v78';
   let timeoutAutoSave;
   
   function autoSalvar() {
@@ -254,7 +255,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   document.getElementById('btnNovoProjeto').onclick = () => {
-      if(confirm("Tem certeza? Isso apagará todas as fotos e dados não salvos. Use isso para iniciar um projeto do zero ou para atualizar os preços do cache.")) {
+      if(confirm("Tem certeza? Isso apagará todas as fotos e dados não salvos. Use isso para iniciar um projeto do zero e atualizar as bases de cálculo.")) {
           fotosSelecionadas = []; assinaturaBase64 = null;
           document.getElementById('form-vistoria').reset();
           document.getElementById('bdiGeral').value = "20.0";
@@ -303,14 +304,12 @@ document.addEventListener('DOMContentLoaded', () => {
       
       TIPOLOGIAS[foto.tipo].composicao.forEach(c => {
           let qtdFinal = m;
-          if (c.mult === "CEIL_GRAMPO") {
+          if (typeof c.mult === 'number') {
+              qtdFinal = m * c.mult;
+          } else if (c.mult === "CEIL_GRAMPO") {
               qtdFinal = Math.ceil(m / 0.3);
-          } else if (c.mult === "CEIL_GRAMPO_KG") {
-              qtdFinal = Math.ceil(m / 0.3) * 0.16; // Matemática corrigida para peso do aço CA-50
           } else if (c.mult === "GRAMPO_X_008") {
               qtdFinal = Math.ceil(m / 0.3) * 0.08;
-          } else if (typeof c.mult === 'number') {
-              qtdFinal = m * c.mult;
           }
 
           let preco = c.precoUnit;
@@ -706,7 +705,7 @@ document.addEventListener('DOMContentLoaded', () => {
     autoSalvar();
   });
 
-  // --- GERAÇÃO DO PDF (MEMORIAL PAGINADO E AÇO CORRIGIDO) ---
+  // --- GERAÇÃO DO PDF (ANTI-CORTE V78) ---
   btnGerarPDF.addEventListener('click', () => {
     const local = document.getElementById('localVistoria').value || 'Não informado';
     let dataF = '___/___/_____';
@@ -755,7 +754,6 @@ document.addEventListener('DOMContentLoaded', () => {
             
             let formTxt = "Inserção manual";
             if (it.multRef === "CEIL_GRAMPO") formTxt = `Arred.Teto(${f.medidaPrincipal} / 0.3)`;
-            else if (it.multRef === "CEIL_GRAMPO_KG") formTxt = `Arred.Teto(${f.medidaPrincipal} / 0.3) x 0.16 kg`;
             else if (it.multRef === "GRAMPO_X_008") formTxt = `Grampos x 0.08 kg`;
             else if (it.multRef !== null && it.multRef !== undefined) formTxt = `${f.medidaPrincipal} x ${it.multRef} (Fator)`;
 
@@ -786,12 +784,11 @@ document.addEventListener('DOMContentLoaded', () => {
           </table>
         </div>`;
         
-        // Bloqueio de quebra de página seguro para o memorial (v77)
         if(f.tipo) {
             memorialTxt += `
             <div style="margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px dashed #ccc; page-break-inside: avoid;">
                 <h5 style="font-family: Tahoma, Arial, sans-serif; font-size: 10pt; margin-bottom:1mm; margin-top:0;">Patologia 0${idx+1} - ${TIPOLOGIAS[f.tipo].nome}${medTxt}</h5>
-                <p style="font-family: Tahoma, Arial, sans-serif; text-align:justify; font-size:9.5pt; margin-top:0;">${TIPOLOGIAS[f.tipo].memorial}</p>
+                <p style="font-family: Tahoma, Arial, sans-serif; text-align:justify; font-size:9.5pt; margin-top:0; white-space: pre-wrap;">${TIPOLOGIAS[f.tipo].memorial}</p>
                 ${memHtml}
             </div>`;
         } else {
@@ -817,6 +814,8 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('texto-memorial-impresso').innerHTML = memorialTxt;
     
     if (document.getElementById('incluirAssinatura').checked) {
+        const nomeFiscal = document.getElementById('nomeFiscal').value || 'Nome do Técnico';
+        const cargoFiscal = document.getElementById('cargoFiscal').value || 'Cargo não informado';
         let imgAssin = assinaturaBase64 ? `<img src="${assinaturaBase64}" class="assinatura-imagem-limpa">` : `<div style="height: 15mm; width: 100%; z-index:-1; position:relative;"></div>`; 
         
         document.getElementById('texto-memorial-impresso').innerHTML += `
