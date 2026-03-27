@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // =========================================================================
-  // EXTRATORES INTELIGENTES (V81) - Proteção contra colunas quebradas do Excel
+  // EXTRATORES INTELIGENTES - Proteção contra colunas quebradas do Excel
   // =========================================================================
   function getSinapiCodigo(item) {
       for (let k in item) {
@@ -98,7 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
           composicao: [
               { desc: "Mão de Obra - Pedreiro com Encargos Complementares", unid: "h", precoUnit: 28.50, busca: "pedreiro com encargos", codigoBase: "88309", tipoItem: "servico", regra: { tipo: 'fator', valor: 1.5, arredondamento: '2casas' } },
               { desc: "Mão de Obra - Servente com Encargos Complementares", unid: "h", precoUnit: 22.30, busca: "servente com encargos", codigoBase: "88316", tipoItem: "servico", regra: { tipo: 'fator', valor: 1.0, arredondamento: '2casas' } },
-              { desc: "Armadura de Aço CA-50, Ø 8,0 mm (Vergalhão cortado/dobrado p/ grampos)", unid: "kg", precoUnit: 15.00, busca: "FORCE_ACO_CA50_KG", codigoBase: "92778", tipoItem: "insumo", regra: { tipo: 'grampo_kg', espacamento: 0.25, peso: 0.395, arredondamento: '2casas' } },
+              { desc: "Armadura de Aço CA-50, Ø 8,0 mm (Vergalhão cortado/dobrado p/ grampos)", unid: "kg", precoUnit: 15.00, busca: "aço ca-50", codigoBase: "92778", tipoItem: "insumo", regra: { tipo: 'grampo_kg', espacamento: 0.25, peso: 0.395, arredondamento: '2casas' } },
               { desc: "Adesivo Estrutural Epóxi Bicomponente", unid: "kg", precoUnit: 115.00, busca: "adesivo estrutural epoxi", codigoBase: "122", tipoItem: "insumo", regra: { tipo: 'grampo_adesivo', espacamento: 0.25, peso: 0.15, arredondamento: '2casas' } },
               { desc: "Graute Tixotrópico / Argamassa Polimérica", unid: "kg", precoUnit: 6.50, busca: "graute tixotropico", codigoBase: "33701", tipoItem: "insumo", regra: { tipo: 'fator', valor: 3.0, arredondamento: '2casas' } },
               { desc: "Lixa, disco de corte e brocas (Rateio/Desgaste)", unid: "un", precoUnit: 45.00, busca: "disco de corte", codigoBase: "3774", tipoItem: "insumo", regra: { tipo: 'fator', valor: 0.05, arredondamento: '2casas' } },
@@ -122,9 +122,9 @@ document.addEventListener('DOMContentLoaded', () => {
           memorial: "1. Demolição do reboco e revestimento comprometido até a alvenaria nua, com margem de segurança de 30 a 50cm além da mancha visível.\n2. Limpeza da base.\n3. Aplicação de chapisco de aderência.\n4. Refazimento do emboço utilizando argamassa aditivada com impermeabilizante hidrófugo por cristalização.",
           unidadeBase: "m²", fatorArea: 1.0,
           composicao: [
-              { desc: "Demolição de reboco e limpeza de substrato (Localizado)", unid: "m²", precoUnit: 22.50, busca: "demolição reboco", codigoBase: "97622", regra: { tipo: 'fator', valor: 1, arredondamento: '2casas' } },
-              { desc: "Chapisco de aderência (SINAPI/TCPO)", unid: "m²", precoUnit: 12.00, busca: "chapisco", codigoBase: "87878", regra: { tipo: 'fator', valor: 1, arredondamento: '2casas' } },
-              { desc: "Reboco impermeável com aditivo hidrófugo", unid: "m²", precoUnit: 58.00, busca: "reboco impermeabilizante", codigoBase: "87529", regra: { tipo: 'fator', valor: 1, arredondamento: '2casas' } }
+              { desc: "Demolição de reboco e limpeza de substrato (Localizado)", unid: "m²", precoUnit: 22.50, busca: "demolição reboco", codigoBase: "97622", tipoItem: "servico", regra: { tipo: 'fator', valor: 1, arredondamento: '2casas' } },
+              { desc: "Chapisco de aderência (SINAPI/TCPO)", unid: "m²", precoUnit: 12.00, busca: "chapisco", codigoBase: "87878", tipoItem: "servico", regra: { tipo: 'fator', valor: 1, arredondamento: '2casas' } },
+              { desc: "Reboco impermeável com aditivo hidrófugo", unid: "m²", precoUnit: 58.00, busca: "reboco impermeabilizante", codigoBase: "87529", tipoItem: "servico", regra: { tipo: 'fator', valor: 1, arredondamento: '2casas' } }
           ]
       },
       UMIDADE_ESGOTO: {
@@ -132,10 +132,10 @@ document.addEventListener('DOMContentLoaded', () => {
           memorial: "1. Demolição profunda do revestimento contaminado (margem >50cm).\n2. Lavagem sanitizante com solução de hipoclorito de sódio a 5%, seguida de aplicação de biocida/fungicida para inibição de bolores.\n3. Chapisco de aderência.\n4. Novo reboco estrutural formulado com cimento resistente a sulfatos (RS).",
           unidadeBase: "m²", fatorArea: 1.0,
           composicao: [
-              { desc: "Demolição profunda de revestimento contaminado", unid: "m²", precoUnit: 30.00, busca: "demolição revestimento", codigoBase: "97622", regra: { tipo: 'fator', valor: 1, arredondamento: '2casas' } },
-              { desc: "Lavagem sanitizante com hipoclorito de sódio a 5%", unid: "m²", precoUnit: 45.00, busca: "hipoclorito", codigoBase: "98544", regra: { tipo: 'fator', valor: 1, arredondamento: '2casas' } },
-              { desc: "Chapisco com cimento resistente a sulfatos (RS)", unid: "m²", precoUnit: 18.00, busca: "chapisco", codigoBase: "87878", regra: { tipo: 'fator', valor: 1, arredondamento: '2casas' } },
-              { desc: "Reboco estrutural com cimento RS", unid: "m²", precoUnit: 82.00, busca: "reboco cimento", codigoBase: "87292", regra: { tipo: 'fator', valor: 1, arredondamento: '2casas' } }
+              { desc: "Demolição profunda de revestimento contaminado", unid: "m²", precoUnit: 30.00, busca: "demolição revestimento", codigoBase: "97622", tipoItem: "servico", regra: { tipo: 'fator', valor: 1, arredondamento: '2casas' } },
+              { desc: "Lavagem sanitizante com hipoclorito de sódio a 5%", unid: "m²", precoUnit: 45.00, busca: "hipoclorito", codigoBase: "98544", tipoItem: "servico", regra: { tipo: 'fator', valor: 1, arredondamento: '2casas' } },
+              { desc: "Chapisco com cimento resistente a sulfatos (RS)", unid: "m²", precoUnit: 18.00, busca: "chapisco", codigoBase: "87878", tipoItem: "servico", regra: { tipo: 'fator', valor: 1, arredondamento: '2casas' } },
+              { desc: "Reboco estrutural com cimento RS", unid: "m²", precoUnit: 82.00, busca: "reboco cimento", codigoBase: "87292", tipoItem: "servico", regra: { tipo: 'fator', valor: 1, arredondamento: '2casas' } }
           ]
       },
       CORROSAO_ARMADURA: {
@@ -143,10 +143,10 @@ document.addEventListener('DOMContentLoaded', () => {
           memorial: "1. Apicoamento/escarificação do concreto degradado até 2cm na retaguarda da armadura.\n2. Limpeza mecânica abrasiva do aço exposto até alcançar o grau ST3 (metal branco).\n3. Aplicação de primer anticorrosivo rico em zinco em 360º da barra afetada.\n4. Aplicação de ponte de aderência epóxi no substrato de concreto antigo.\n5. Recomposição rigorosa da seção geométrica com graute ou argamassa polimérica tixotrópica estrutural.",
           unidadeBase: "m²", fatorArea: 1.0,
           composicao: [
-              { desc: "Apicoamento/escarificação mecânica do concreto", unid: "m²", precoUnit: 110.00, busca: "apicoamento", codigoBase: "97644", regra: { tipo: 'fator', valor: 1, arredondamento: '2casas' } },
-              { desc: "Primer anticorrosivo base zinco 360º na armadura", unid: "m²", precoUnit: 145.00, busca: "primer zinco", codigoBase: "100722", regra: { tipo: 'fator', valor: 1, arredondamento: '2casas' } },
-              { desc: "Ponte de aderência estrutural à base de epóxi", unid: "m²", precoUnit: 85.00, busca: "ponte aderencia", codigoBase: "98547", regra: { tipo: 'fator', valor: 1, arredondamento: '2casas' } },
-              { desc: "Recomposição com graute tixotrópico estrutural", unid: "m²", precoUnit: 190.00, busca: "graute tixotropico", codigoBase: "100724", regra: { tipo: 'fator', valor: 1, arredondamento: '2casas' } }
+              { desc: "Apicoamento/escarificação mecânica do concreto", unid: "m²", precoUnit: 110.00, busca: "apicoamento", codigoBase: "97644", tipoItem: "servico", regra: { tipo: 'fator', valor: 1, arredondamento: '2casas' } },
+              { desc: "Primer anticorrosivo base zinco 360º na armadura", unid: "m²", precoUnit: 145.00, busca: "primer zinco", codigoBase: "100722", tipoItem: "servico", regra: { tipo: 'fator', valor: 1, arredondamento: '2casas' } },
+              { desc: "Ponte de aderência estrutural à base de epóxi", unid: "m²", precoUnit: 85.00, busca: "ponte aderencia", codigoBase: "98547", tipoItem: "servico", regra: { tipo: 'fator', valor: 1, arredondamento: '2casas' } },
+              { desc: "Recomposição com graute tixotrópico estrutural", unid: "m²", precoUnit: 190.00, busca: "graute tixotropico", codigoBase: "100724", tipoItem: "servico", regra: { tipo: 'fator', valor: 1, arredondamento: '2casas' } }
           ]
       },
       RECALQUE_ESTACA_MEGA: {
@@ -167,9 +167,9 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   // =========================================================================
-  // SALVAMENTO E CARREGAMENTO DE PROJETO (CHAVE FORÇADA v81)
+  // SALVAMENTO E CARREGAMENTO DE PROJETO (CHAVE FORÇADA v82)
   // =========================================================================
-  const STORAGE_KEY = 'projetoPatologiasSabesp_v81';
+  const STORAGE_KEY = 'projetoPatologiasSabesp_v82';
   let timeoutAutoSave;
   
   function autoSalvar() {
@@ -350,7 +350,7 @@ document.addEventListener('DOMContentLoaded', () => {
           formulaTxt += ` (Mínimo adotado: ${c.regra.minimo})`;
       }
 
-      // Motor de Busca Inteligente (V81)
+      // Motor de Busca Inteligente com Trava Anti-Alucinação para Insumos (V82)
       let preco = c.precoUnit;
       let desc = c.desc;
       let fontePreco = "Tabela Interna (Fallback)";
@@ -358,10 +358,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (baseSinapi.length > 0 && !c.busca.startsWith('FORCE_')) {
           let s = null;
+          // Tenta a busca 100% segura por Código
           if (c.codigoBase) {
               s = baseSinapi.find(i => getSinapiCodigo(i) == c.codigoBase);
           }
-          if (!s) {
+          
+          // Se não achar por código, e NÃO FOR INSUMO, procura por texto
+          // Insumos não devem ser procurados por texto nas planilhas sintéticas, 
+          // caso contrário eles encontram serviços inteiros.
+          if (!s && c.tipoItem !== 'insumo') {
               const termoNorm = normalizarTexto(c.busca);
               s = baseSinapi.find(i => normalizarTexto(getSinapiDescricao(i)).includes(termoNorm));
           }
@@ -872,7 +877,7 @@ document.addEventListener('DOMContentLoaded', () => {
     autoSalvar();
   });
 
-  // --- GERAÇÃO DO PDF E FORMATAÇÃO DE TABELAS ---
+  // --- GERAÇÃO DO PDF ---
   btnGerarPDF.addEventListener('click', () => {
     const local = document.getElementById('localVistoria').value || 'Não informado';
     let dataF = '___/___/_____';
