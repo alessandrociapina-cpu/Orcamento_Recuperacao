@@ -4,8 +4,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnGerarPDF = document.getElementById('btnGerarPDF');
   const canvasEditor = document.getElementById('canvasEditor');
   const ctxEditor = canvasEditor.getContext('2d');
-  const modalEditor = document.getElementById('modalEditor');
-  const modalCrop = document.getElementById('modalCrop');
   const inputBDI = document.getElementById('bdiGeral');
   
   let fotosSelecionadas = [];
@@ -36,21 +34,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const ACABAMENTOS = {
       'none': { desc: 'Sem acabamento adicional', preco: 0, busca: '' },
-      'pintura_latex': { desc: 'Emassamento e Pintura Látex', unid: 'm²', preco: 38.00, busca: 'pintura latex' },
-      'pintura_acrilica': { desc: 'Emassamento e Pintura Acrílica', unid: 'm²', preco: 48.00, busca: 'pintura acrilica' },
-      'textura': { desc: 'Aplicação de Selador e Textura Acrílica', unid: 'm²', preco: 58.00, busca: 'textura acrilica' },
-      'ceramica': { desc: 'Assentamento de Revestimento Cerâmico', unid: 'm²', preco: 92.00, busca: 'revestimento ceramico' }
+      'pintura_latex': { desc: 'Emassamento e Pintura Látex', unid: 'm²', preco: 38.00, busca: 'pintura latex', codigoBase: 'SAB-ACAB-01' },
+      'pintura_acrilica': { desc: 'Emassamento e Pintura Acrílica', unid: 'm²', preco: 48.00, busca: 'pintura acrilica', codigoBase: 'SAB-ACAB-02' },
+      'textura': { desc: 'Aplicação de Selador e Textura Acrílica', unid: 'm²', preco: 58.00, busca: 'textura acrilica', codigoBase: 'SAB-ACAB-03' },
+      'ceramica': { desc: 'Assentamento de Revestimento Cerâmico', unid: 'm²', preco: 92.00, busca: 'revestimento ceramico', codigoBase: 'SAB-ACAB-04' }
   };
 
-  // TIPOLOGIAS ATUALIZADAS (V78) - CPU ANALÍTICA COM JUSTIFICATIVA DE CONSUMO
+  // TIPOLOGIAS ATUALIZADAS (V79) - REGRAS EXPLÍCITAS E MÁXIMA RASTREABILIDADE
   const TIPOLOGIAS = {
       TRINCA_PASSIVA_LEVE: {
           nome: "Trinca/Fissura Passiva (Superficial/Leve)",
           memorial: "1. Abertura de sulco superficial ao longo da diretriz da fissura (escarificação leve do revestimento).\n2. Limpeza enérgica com escova e ar comprimido para remoção de partículas soltas.\n3. Preenchimento do vão com argamassa polimérica ou resina epóxi de baixa viscosidade, visando a recomposição e estabilização superficial.\n4. Regularização da superfície (localizada) para posterior recebimento de acabamento.",
           unidadeBase: "m", fatorArea: 0.5,
           composicao: [
-              { desc: "Abertura de trinca/fissura superficial", unid: "m", precoUnit: 14.50, busca: "abertura trinca", mult: 1 },
-              { desc: "Preenchimento com argamassa polimérica / resina (Localizado)", unid: "m", precoUnit: 35.00, busca: "argamassa polimerica", mult: 1 }
+              { desc: "Abertura de trinca/fissura superficial", unid: "m", precoUnit: 14.50, busca: "abertura trinca", regra: { tipo: 'fator', valor: 1 } },
+              { desc: "Preenchimento com argamassa polimérica / resina (Localizado)", unid: "m", precoUnit: 35.00, busca: "argamassa polimerica", regra: { tipo: 'fator', valor: 1 } }
           ]
       },
       TRINCA_PASSIVA_ESTRUTURAL: {
@@ -58,13 +56,13 @@ document.addEventListener('DOMContentLoaded', () => {
           memorial: "1. Abertura de vão em 'V' ao longo da diretriz da fissura e escarificação mecânica profunda do substrato.\n2. Limpeza enérgica com escova de aço e jato de ar comprimido para remoção do pó.\n3. Furação transversal e inserção de armadura em 'Z' (costura com 4 grampos de aço CA-50 por metro, a cada 25cm).\n4. Ancoragem dos grampos e pincelamento da cava com adesivo estrutural de base epóxi bicomponente.\n5. Preenchimento estrutural do vão com graute tixotrópico ou argamassa polimérica, visando o restabelecimento do monolitismo da peça.\n6. Chapisco e emboço localizado para regularização.\n\n* Justificativa de Consumo (Por metro linear):\n- Aço CA-50 (Ø 8,0mm): 4 grampos/m x 60cm/grampo x 0,395 kg/m = 0,95 kg/m.\n- Adesivo Epóxi: 4 grampos/m x 150g/grampo = 0,60 kg/m.\n- Graute Tixotrópico: Preenchimento do vão 'V' (3x3cm) e cobrimento = 3,00 kg/m.\n- Mão de Obra: Tempo de escarificação, furação, limpeza e chumbamento = 1,5h Pedreiro + 1,0h Servente.",
           unidadeBase: "m", fatorArea: 0.5,
           composicao: [
-              { desc: "Mão de Obra - Pedreiro com Encargos Complementares", unid: "h", precoUnit: 28.50, busca: "pedreiro com encargos", mult: 1.5 },
-              { desc: "Mão de Obra - Servente com Encargos Complementares", unid: "h", precoUnit: 22.30, busca: "servente com encargos", mult: 1.0 },
-              { desc: "Armadura de Aço CA-50, Ø 8,0 mm (Vergalhão cortado/dobrado p/ grampos)", unid: "kg", precoUnit: 15.00, busca: "FORCE_ACO_CA50_KG", mult: 0.95 },
-              { desc: "Adesivo Estrutural Epóxi Bicomponente", unid: "kg", precoUnit: 115.00, busca: "adesivo estrutural epoxi", mult: 0.60 },
-              { desc: "Graute Tixotrópico / Argamassa Polimérica", unid: "kg", precoUnit: 6.50, busca: "graute tixotropico", mult: 3.0 },
-              { desc: "Lixa, disco de corte e brocas (Rateio/Desgaste)", unid: "un", precoUnit: 45.00, busca: "disco de corte", mult: 0.05 },
-              { desc: "Chapisco e emboço para regularização (Localizado)", unid: "m²", precoUnit: 52.00, busca: "reboco argamassa", mult: 0.5 }
+              { desc: "Mão de Obra - Pedreiro com Encargos Complementares", unid: "h", precoUnit: 28.50, busca: "pedreiro com encargos", regra: { tipo: 'fator', valor: 1.5 } },
+              { desc: "Mão de Obra - Servente com Encargos Complementares", unid: "h", precoUnit: 22.30, busca: "servente com encargos", regra: { tipo: 'fator', valor: 1.0 } },
+              { desc: "Armadura de Aço CA-50, Ø 8,0 mm (Vergalhão cortado/dobrado p/ grampos)", unid: "kg", precoUnit: 15.00, busca: "FORCE_ACO_CA50_KG", regra: { tipo: 'fator', valor: 0.95 } },
+              { desc: "Adesivo Estrutural Epóxi Bicomponente", unid: "kg", precoUnit: 115.00, busca: "adesivo estrutural epoxi", regra: { tipo: 'fator', valor: 0.60 } },
+              { desc: "Graute Tixotrópico / Argamassa Polimérica", unid: "kg", precoUnit: 6.50, busca: "graute tixotropico", regra: { tipo: 'fator', valor: 3.0 } },
+              { desc: "Lixa, disco de corte e brocas (Rateio/Desgaste)", unid: "un", precoUnit: 45.00, busca: "disco de corte", regra: { tipo: 'fator', valor: 0.05 } },
+              { desc: "Chapisco e emboço para regularização (Localizado)", unid: "m²", precoUnit: 52.00, busca: "reboco argamassa", regra: { tipo: 'fator', valor: 0.5 } }
           ]
       },
       TRINCA_ATIVA: {
@@ -72,11 +70,11 @@ document.addEventListener('DOMContentLoaded', () => {
           memorial: "1. Abertura de sulco em 'V' com dimensões proporcionais à movimentação esperada.\n2. Limpeza e secagem rigorosa da base.\n3. Inserção de limitador de profundidade (tarugo de polietileno expandido) para evitar aderência no fundo da junta.\n4. Aplicação de primer e preenchimento integral com selante elastomérico flexível (PU).\n5. Colocação de tela de poliéster engastada na camada de acabamento (bandagem).\n6. Emassamento com massa acrílica flexível para dissipação de tensões longitudinais.",
           unidadeBase: "m", fatorArea: 0.5,
           composicao: [
-              { desc: "Abertura de junta/sulco em 'V' e limpeza", unid: "m", precoUnit: 22.00, busca: "abertura junta", mult: 1 },
-              { desc: "Aplicação de fundo de junta (tarugo de polietileno)", unid: "m", precoUnit: 5.50, busca: "fundo de junta", mult: 1 },
-              { desc: "Selamento com mastique elastomérico (PU) e primer", unid: "m", precoUnit: 62.00, busca: "selante poliuretano", mult: 1 },
-              { desc: "Tratamento em 'sanduíche' com tela de poliéster e base coat", unid: "m", precoUnit: 35.00, busca: "tela poliester", mult: 1 },
-              { desc: "Emassamento com massa acrílica elastomérica (Localizado)", unid: "m²", precoUnit: 42.00, busca: "massa acrilica", mult: 0.5 }
+              { desc: "Abertura de junta/sulco em 'V' e limpeza", unid: "m", precoUnit: 22.00, busca: "abertura junta", regra: { tipo: 'fator', valor: 1 } },
+              { desc: "Aplicação de fundo de junta (tarugo de polietileno)", unid: "m", precoUnit: 5.50, busca: "fundo de junta", regra: { tipo: 'fator', valor: 1 } },
+              { desc: "Selamento com mastique elastomérico (PU) e primer", unid: "m", precoUnit: 62.00, busca: "selante poliuretano", regra: { tipo: 'fator', valor: 1 } },
+              { desc: "Tratamento em 'sanduíche' com tela de poliéster e base coat", unid: "m", precoUnit: 35.00, busca: "tela poliester", regra: { tipo: 'fator', valor: 1 } },
+              { desc: "Emassamento com massa acrílica elastomérica (Localizado)", unid: "m²", precoUnit: 42.00, busca: "massa acrilica", regra: { tipo: 'fator', valor: 0.5 } }
           ]
       },
       UMIDADE_AGUA: {
@@ -84,9 +82,9 @@ document.addEventListener('DOMContentLoaded', () => {
           memorial: "1. Demolição do reboco e revestimento comprometido até a alvenaria nua, com margem de segurança de 30 a 50cm além da mancha visível.\n2. Limpeza da base.\n3. Aplicação de chapisco de aderência.\n4. Refazimento do emboço utilizando argamassa aditivada com impermeabilizante hidrófugo por cristalização.",
           unidadeBase: "m²", fatorArea: 1.0,
           composicao: [
-              { desc: "Demolição de reboco e limpeza de substrato (Localizado)", unid: "m²", precoUnit: 22.50, busca: "demolição reboco", mult: 1 },
-              { desc: "Chapisco de aderência (SINAPI/TCPO)", unid: "m²", precoUnit: 12.00, busca: "chapisco", mult: 1 },
-              { desc: "Reboco impermeável com aditivo hidrófugo", unid: "m²", precoUnit: 58.00, busca: "reboco impermeabilizante", mult: 1 }
+              { desc: "Demolição de reboco e limpeza de substrato (Localizado)", unid: "m²", precoUnit: 22.50, busca: "demolição reboco", regra: { tipo: 'fator', valor: 1 } },
+              { desc: "Chapisco de aderência (SINAPI/TCPO)", unid: "m²", precoUnit: 12.00, busca: "chapisco", regra: { tipo: 'fator', valor: 1 } },
+              { desc: "Reboco impermeável com aditivo hidrófugo", unid: "m²", precoUnit: 58.00, busca: "reboco impermeabilizante", regra: { tipo: 'fator', valor: 1 } }
           ]
       },
       UMIDADE_ESGOTO: {
@@ -94,10 +92,10 @@ document.addEventListener('DOMContentLoaded', () => {
           memorial: "1. Demolição profunda do revestimento contaminado (margem >50cm).\n2. Lavagem sanitizante com solução de hipoclorito de sódio a 5%, seguida de aplicação de biocida/fungicida para inibição de bolores.\n3. Chapisco de aderência.\n4. Novo reboco estrutural formulado com cimento resistente a sulfatos (RS).",
           unidadeBase: "m²", fatorArea: 1.0,
           composicao: [
-              { desc: "Demolição profunda de revestimento contaminado", unid: "m²", precoUnit: 30.00, busca: "demolição revestimento", mult: 1 },
-              { desc: "Lavagem sanitizante com hipoclorito de sódio a 5%", unid: "m²", precoUnit: 45.00, busca: "hipoclorito", mult: 1 },
-              { desc: "Chapisco com cimento resistente a sulfatos (RS)", unid: "m²", precoUnit: 18.00, busca: "chapisco", mult: 1 },
-              { desc: "Reboco estrutural com cimento RS", unid: "m²", precoUnit: 82.00, busca: "reboco cimento", mult: 1 }
+              { desc: "Demolição profunda de revestimento contaminado", unid: "m²", precoUnit: 30.00, busca: "demolição revestimento", regra: { tipo: 'fator', valor: 1 } },
+              { desc: "Lavagem sanitizante com hipoclorito de sódio a 5%", unid: "m²", precoUnit: 45.00, busca: "hipoclorito", regra: { tipo: 'fator', valor: 1 } },
+              { desc: "Chapisco com cimento resistente a sulfatos (RS)", unid: "m²", precoUnit: 18.00, busca: "chapisco", regra: { tipo: 'fator', valor: 1 } },
+              { desc: "Reboco estrutural com cimento RS", unid: "m²", precoUnit: 82.00, busca: "reboco cimento", regra: { tipo: 'fator', valor: 1 } }
           ]
       },
       CORROSAO_ARMADURA: {
@@ -105,10 +103,10 @@ document.addEventListener('DOMContentLoaded', () => {
           memorial: "1. Apicoamento/escarificação do concreto degradado até 2cm na retaguarda da armadura.\n2. Limpeza mecânica abrasiva do aço exposto até alcançar o grau ST3 (metal branco).\n3. Aplicação de primer anticorrosivo rico em zinco em 360º da barra afetada.\n4. Aplicação de ponte de aderência epóxi no substrato de concreto antigo.\n5. Recomposição rigorosa da seção geométrica com graute ou argamassa polimérica tixotrópica estrutural.",
           unidadeBase: "m²", fatorArea: 1.0,
           composicao: [
-              { desc: "Apicoamento/escarificação mecânica do concreto", unid: "m²", precoUnit: 110.00, busca: "apicoamento", mult: 1 },
-              { desc: "Primer anticorrosivo base zinco 360º na armadura", unid: "m²", precoUnit: 145.00, busca: "primer zinco", mult: 1 },
-              { desc: "Ponte de aderência estrutural à base de epóxi", unid: "m²", precoUnit: 85.00, busca: "ponte aderencia", mult: 1 },
-              { desc: "Recomposição com graute tixotrópico estrutural", unid: "m²", precoUnit: 190.00, busca: "graute tixotropico", mult: 1 }
+              { desc: "Apicoamento/escarificação mecânica do concreto", unid: "m²", precoUnit: 110.00, busca: "apicoamento", regra: { tipo: 'fator', valor: 1 } },
+              { desc: "Primer anticorrosivo base zinco 360º na armadura", unid: "m²", precoUnit: 145.00, busca: "primer zinco", regra: { tipo: 'fator', valor: 1 } },
+              { desc: "Ponte de aderência estrutural à base de epóxi", unid: "m²", precoUnit: 85.00, busca: "ponte aderencia", regra: { tipo: 'fator', valor: 1 } },
+              { desc: "Recomposição com graute tixotrópico estrutural", unid: "m²", precoUnit: 190.00, busca: "graute tixotropico", regra: { tipo: 'fator', valor: 1 } }
           ]
       },
       RECALQUE_ESTACA_MEGA: {
@@ -116,14 +114,14 @@ document.addEventListener('DOMContentLoaded', () => {
           memorial: "1. Mobilização de equipamentos e monitoramento da estrutura.\n2. Escavação manual e escoramento para abertura de poço.\n3. Cravação de estacas mega de concreto por macacagem (comprimento estimado, a ser confirmado in loco por leitura de manômetro/nega).\n4. Encunhamento e concretagem do bloco de transição com cunhas metálicas.\n5. Tratamento localizado de rachaduras na alvenaria com técnica sanduíche.\n6. Recomposição arquitetônica (piso e pintura em pano inteiro) e remoção de entulho.",
           unidadeBase: "un", fatorArea: 1.0, 
           composicao: [
-              { desc: "Mobilização de equipamento leve (Macaco Hidráulico)", unid: "un", precoUnit: 350.00, busca: "FORCE_MOBILIZACAO_MACACO", mult: 1 },
-              { desc: "Escavação manual de vala para bloco/poço", unid: "un", precoUnit: 180.00, busca: "FORCE_ESCAVACAO_MANUAL", mult: 1 },
-              { desc: "Cravação de Estaca Mega de concreto (estimado 10m)", unid: "m", precoUnit: 320.00, busca: "FORCE_ESTACA_MEGA", mult: 10 },
-              { desc: "Encunhamento com cunhas metálicas e graute de alta resistência", unid: "un", precoUnit: 950.00, busca: "FORCE_ENCUNHAMENTO_METALICO", mult: 1 },
-              { desc: "Tratamento de rachaduras em 'sanduíche' c/ tela de poliéster e argamassa (Local)", unid: "m", precoUnit: 45.00, busca: "tratamento trincas", mult: 3 },
-              { desc: "Recomposição de contrapiso e piso cerâmico", unid: "m²", precoUnit: 150.00, busca: "contrapiso", mult: 2 },
-              { desc: "Emassamento e Pintura de Acabamento da Parede (Pano Inteiro)", unid: "m²", precoUnit: 38.00, busca: "pintura latex", mult: 9 },
-              { desc: "Remoção de entulho / Caçamba (rateio)", unid: "un", precoUnit: 450.00, busca: "caçamba", mult: 0.5 }
+              { desc: "Mobilização de equipamento leve (Macaco Hidráulico)", unid: "un", precoUnit: 350.00, busca: "FORCE_MOBILIZACAO_MACACO", regra: { tipo: 'fator', valor: 1 } },
+              { desc: "Escavação manual de vala para bloco/poço", unid: "un", precoUnit: 180.00, busca: "FORCE_ESCAVACAO_MANUAL", regra: { tipo: 'fator', valor: 1 } },
+              { desc: "Cravação de Estaca Mega de concreto (estimado 10m)", unid: "m", precoUnit: 320.00, busca: "FORCE_ESTACA_MEGA", regra: { tipo: 'fator', valor: 10 } },
+              { desc: "Encunhamento com cunhas metálicas e graute de alta resistência", unid: "un", precoUnit: 950.00, busca: "FORCE_ENCUNHAMENTO_METALICO", regra: { tipo: 'fator', valor: 1 } },
+              { desc: "Tratamento de rachaduras em 'sanduíche' c/ tela de poliéster e argamassa (Local)", unid: "m", precoUnit: 45.00, busca: "tratamento trincas", regra: { tipo: 'fator', valor: 3 } },
+              { desc: "Recomposição de contrapiso e piso cerâmico", unid: "m²", precoUnit: 150.00, busca: "contrapiso", regra: { tipo: 'fator', valor: 2 } },
+              { desc: "Emassamento e Pintura de Acabamento da Parede (Pano Inteiro)", unid: "m²", precoUnit: 38.00, busca: "pintura latex", regra: { tipo: 'fator', valor: 9 } },
+              { desc: "Remoção de entulho / Caçamba (rateio)", unid: "un", precoUnit: 450.00, busca: "caçamba", regra: { tipo: 'fator', valor: 0.5 } }
           ]
       },
       RECALQUE_EROSAO_PIPING: {
@@ -131,8 +129,8 @@ document.addEventListener('DOMContentLoaded', () => {
           memorial: "1. Perfuração do contrapiso ou fundação para acesso aos vazios.\n2. Injeção sob pressão de calda de cimento ou concreto fluido para preenchimento da erosão e estabilização do solo carreável.",
           unidadeBase: "m³", fatorArea: 1.0,
           composicao: [
-              { desc: "Furação mecanizada de laje/contrapiso p/ acesso", unid: "un", precoUnit: 35.00, busca: "furo", mult: 2 },
-              { desc: "Injeção de calda de cimento/concreto fluido", unid: "m³", precoUnit: 680.00, busca: "calda de cimento", mult: 1 }
+              { desc: "Furação mecanizada de laje/contrapiso p/ acesso", unid: "un", precoUnit: 35.00, busca: "furo", regra: { tipo: 'fator', valor: 2 } },
+              { desc: "Injeção de calda de cimento/concreto fluido", unid: "m³", precoUnit: 680.00, busca: "calda de cimento", regra: { tipo: 'fator', valor: 1 } }
           ]
       },
       ATAQUE_SULFATOS: {
@@ -140,17 +138,17 @@ document.addEventListener('DOMContentLoaded', () => {
           memorial: "1. Demolição e apicoamento do concreto estrutural contaminado.\n2. Lavagem química e neutralização da base.\n3. Recomposição estrutural utilizando argamassa ou graute formulado com cimento Resistente a Sulfatos (RS).",
           unidadeBase: "m²", fatorArea: 1.0,
           composicao: [
-              { desc: "Apicoamento/escarificação do concreto", unid: "m²", precoUnit: 110.00, busca: "apicoamento", mult: 1 },
-              { desc: "Lavagem química preparatória", unid: "m²", precoUnit: 45.00, busca: "lavagem", mult: 1 },
-              { desc: "Recomposição com Graute Estrutural (Cimento RS)", unid: "m²", precoUnit: 220.00, busca: "graute", mult: 1 }
+              { desc: "Apicoamento/escarificação do concreto", unid: "m²", precoUnit: 110.00, busca: "apicoamento", regra: { tipo: 'fator', valor: 1 } },
+              { desc: "Lavagem química preparatória", unid: "m²", precoUnit: 45.00, busca: "lavagem", regra: { tipo: 'fator', valor: 1 } },
+              { desc: "Recomposição com Graute Estrutural (Cimento RS)", unid: "m²", precoUnit: 220.00, busca: "graute", regra: { tipo: 'fator', valor: 1 } }
           ]
       }
   };
 
   // =========================================================================
-  // SALVAMENTO E CARREGAMENTO DE PROJETO (CHAVE FORÇADA v78)
+  // SALVAMENTO E CARREGAMENTO DE PROJETO (NOVA ARQUITETURA DE DADOS V78/79)
   // =========================================================================
-  const STORAGE_KEY = 'projetoPatologiasSabesp_v78';
+  const STORAGE_KEY = 'projetoPatologiasSabesp_v79';
   let timeoutAutoSave;
   
   function autoSalvar() {
@@ -267,7 +265,7 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   // =========================================================================
-  // GESTÃO DE IMAGENS E INTERFACE
+  // GESTÃO DE IMAGENS E INTERFACE (NOVA ARQUITETURA V79)
   // =========================================================================
   inputSelecionarFotos.addEventListener('change', (e) => {
     const files = e.target.files;
@@ -283,9 +281,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 cvs.height = cvs.width / ratio;
                 cvs.getContext('2d').drawImage(img, 0, 0, cvs.width, cvs.height);
                 
+                // V79: Inicializa com arrays isolados para não perder manuais!
                 fotosSelecionadas.push({
                     id: Date.now() + Math.random(), preview: cvs.toDataURL('image/jpeg', 0.85), edited: null,
-                    tipo: '', acabamento: 'none', medidaPrincipal: 1, itensOrcamento: [], legenda: ''
+                    tipo: '', acabamento: 'none', medidaPrincipal: 1, itensAutomaticos: [], itensManuais: [], legenda: ''
                 });
                 renderizarInterface();
                 autoSalvar();
@@ -300,20 +299,41 @@ document.addEventListener('DOMContentLoaded', () => {
   function reconstruirComposicao(foto) {
       if (!foto.tipo || !TIPOLOGIAS[foto.tipo]) return;
       const m = foto.medidaPrincipal;
-      foto.itensOrcamento = [];
       
-      TIPOLOGIAS[foto.tipo].composicao.forEach(c => {
-          let qtdFinal = m;
-          if (typeof c.mult === 'number') {
-              qtdFinal = m * c.mult;
-          } else if (c.mult === "CEIL_GRAMPO") {
-              qtdFinal = Math.ceil(m / 0.3);
-          } else if (c.mult === "GRAMPO_X_008") {
-              qtdFinal = Math.ceil(m / 0.3) * 0.08;
+      // Preservar estado anterior para não perder edições manuais nas qtdes
+      const estadoAnterior = {};
+      if (foto.itensAutomaticos) {
+          foto.itensAutomaticos.forEach(it => { estadoAnterior[it.idRef] = it; });
+      }
+
+      foto.itensAutomaticos = [];
+      
+      TIPOLOGIAS[foto.tipo].composicao.forEach((c, index) => {
+          const idRef = `auto_${foto.tipo}_${index}`;
+          const anterior = estadoAnterior[idRef];
+
+          if (anterior && anterior.removido) return; // Se usuário deletou, não recria
+
+          let qtdCalculada = m;
+          let formulaTxt = "";
+
+          if (c.regra.tipo === 'fator') {
+              qtdCalculada = m * c.regra.valor;
+              formulaTxt = `${m} x ${c.regra.valor} (Fator)`;
+          } else if (c.regra.tipo === 'teto_grampo') {
+              qtdCalculada = Math.ceil(m / c.regra.espacamento);
+              formulaTxt = `Arred.Teto(${m} / ${c.regra.espacamento})`;
+          } else if (c.regra.tipo === 'grampo_kg') {
+              qtdCalculada = Math.ceil(m / c.regra.espacamento) * c.regra.peso;
+              formulaTxt = `Arred.Teto(${m} / ${c.regra.espacamento}) x ${c.regra.peso} kg`;
+          } else if (c.regra.tipo === 'grampo_adesivo') {
+              qtdCalculada = Math.ceil(m / c.regra.espacamento) * c.regra.peso;
+              formulaTxt = `Grampos x ${c.regra.peso} kg`;
           }
 
           let preco = c.precoUnit;
           let desc = c.desc;
+          
           if (baseSinapi.length > 0) {
               const termoNorm = normalizarTexto(c.busca);
               let s = baseSinapi.find(i => normalizarTexto(i["TABELA DE CUSTOS SINTÉTICA"]).includes(termoNorm));
@@ -321,21 +341,63 @@ document.addEventListener('DOMContentLoaded', () => {
                   preco = parsePreco(s["FIELD4"]); desc = s["TABELA DE CUSTOS SINTÉTICA"]; 
               }
           }
-          foto.itensOrcamento.push({ desc, unid: c.unid, qtd: parseFloat(qtdFinal.toFixed(2)), preco, multRef: c.mult });
+
+          let qtdAdotada = parseFloat(qtdCalculada.toFixed(2));
+          let editado = false;
+          let modo = 'localizado';
+          let descFinal = desc;
+
+          // Recupera os valores se o usuário já havia ajustado manualmente
+          if (anterior && anterior.editadoManualmente) {
+              qtdAdotada = anterior.qtdAdotada;
+              editado = true;
+              modo = anterior.modo || 'localizado';
+              descFinal = anterior.desc;
+          }
+
+          foto.itensAutomaticos.push({
+              idRef: idRef, origem: 'automatico', categoria: 'servico', modo: modo,
+              desc: descFinal, unid: c.unid, qtdAdotada: qtdAdotada, preco: preco,
+              formula: formulaTxt, editadoManualmente: editado, removido: false
+          });
       });
 
+      // Tratar o Acabamento de forma segura
       if (foto.acabamento && foto.acabamento !== 'none') {
           const a = ACABAMENTOS[foto.acabamento];
-          let area = m * TIPOLOGIAS[foto.tipo].fatorArea;
-          let preco = a.preco;
-          let desc = a.desc;
-          
-          if (baseSinapi.length > 0) {
-              const termoNorm = normalizarTexto(a.busca);
-              let s = baseSinapi.find(i => normalizarTexto(i["TABELA DE CUSTOS SINTÉTICA"]).includes(termoNorm));
-              if (s) { preco = parsePreco(s["FIELD4"]); desc = s["TABELA DE CUSTOS SINTÉTICA"]; }
+          const idRef = `auto_acab_01`;
+          const anterior = estadoAnterior[idRef];
+
+          if (!(anterior && anterior.removido)) {
+              let qtdCalculada = m * TIPOLOGIAS[foto.tipo].fatorArea;
+              let formulaTxt = `${m} x ${TIPOLOGIAS[foto.tipo].fatorArea} (Fator)`;
+              let preco = a.preco;
+              let desc = a.desc;
+              
+              if (baseSinapi.length > 0) {
+                  const termoNorm = normalizarTexto(a.busca);
+                  let s = baseSinapi.find(i => normalizarTexto(i["TABELA DE CUSTOS SINTÉTICA"]).includes(termoNorm));
+                  if (s) { preco = parsePreco(s["FIELD4"]); desc = s["TABELA DE CUSTOS SINTÉTICA"]; }
+              }
+
+              let qtdAdotada = parseFloat(qtdCalculada.toFixed(2));
+              let editado = false;
+              let modo = 'localizado';
+              let descFinal = desc;
+
+              if (anterior && anterior.editadoManualmente) {
+                  qtdAdotada = anterior.qtdAdotada;
+                  editado = true;
+                  modo = anterior.modo || 'localizado';
+                  descFinal = anterior.desc;
+              }
+
+              foto.itensAutomaticos.push({
+                  idRef: idRef, origem: 'automatico', categoria: 'acabamento', modo: modo,
+                  desc: descFinal, unid: a.unid, qtdAdotada: qtdAdotada, preco: preco,
+                  formula: formulaTxt, editadoManualmente: editado, removido: false
+              });
           }
-          foto.itensOrcamento.push({ desc, unid: a.unid, qtd: parseFloat(area.toFixed(2)), preco, multRef: TIPOLOGIAS[foto.tipo].fatorArea });
       }
   }
 
@@ -345,18 +407,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
       fotosSelecionadas.forEach((foto, idx) => {
           let subtotalPatologia = 0;
-          foto.itensOrcamento.forEach((item, itemIdx) => {
-              let totalItem = item.qtd * item.preco;
+          const itensRender = [...(foto.itensAutomaticos || []).filter(i => !i.removido), ...(foto.itensManuais || [])];
+          
+          itensRender.forEach((item, itemIdx) => {
+              let totalItem = item.qtdAdotada * item.preco;
               subtotalPatologia += totalItem;
-
               const celulaTotalItem = document.getElementById(`totalItem-${idx}-${itemIdx}`);
               if (celulaTotalItem) celulaTotalItem.innerText = `R$ ${totalItem.toFixed(2).replace('.',',')}`;
-              
               const inputQtd = document.getElementById(`qtd-${idx}-${itemIdx}`);
-              if (inputQtd && document.activeElement !== inputQtd) inputQtd.value = item.qtd;
+              if (inputQtd && document.activeElement !== inputQtd) inputQtd.value = item.qtdAdotada;
           });
-          totalDiretoGlobal += subtotalPatologia;
 
+          totalDiretoGlobal += subtotalPatologia;
           const celulaSubtotal = document.getElementById(`subtotal-${idx}`);
           if (celulaSubtotal) celulaSubtotal.innerText = `R$ ${subtotalPatologia.toFixed(2).replace('.',',')}`;
 
@@ -397,11 +459,17 @@ document.addEventListener('DOMContentLoaded', () => {
       if (area) {
           area = parseFloat(area.replace(',', '.'));
           if (!isNaN(area) && area > 0) {
-              const a = ACABAMENTOS[f.acabamento];
-              f.itensOrcamento = f.itensOrcamento.filter(it => !it.desc.includes(a.desc));
-              f.itensOrcamento.push({ desc: a.desc + " (Pano Inteiro)", unid: a.unid, qtd: area, preco: a.preco, multRef: null });
-              renderizarInterface();
-              autoSalvar();
+              const itemAcab = f.itensAutomaticos.find(it => it.categoria === 'acabamento' && !it.removido);
+              if (itemAcab) {
+                  itemAcab.qtdAdotada = area;
+                  itemAcab.editadoManualmente = true;
+                  itemAcab.modo = 'pano_inteiro';
+                  if(!itemAcab.desc.includes('Pano Inteiro')) {
+                      itemAcab.desc = itemAcab.desc + " (Pano Inteiro)";
+                  }
+                  renderizarInterface();
+                  autoSalvar();
+              }
           }
       }
   };
@@ -413,6 +481,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const card = document.createElement('div');
       card.className = 'card-patologia';
       const tituloMedidaT = foto.tipo ? ` - ${foto.medidaPrincipal} ${TIPOLOGIAS[foto.tipo].unidadeBase}` : '';
+      
+      const itensRender = [...(foto.itensAutomaticos || []).filter(i => !i.removido), ...(foto.itensManuais || [])];
 
       let html = `
         <div class="card-col-esq">
@@ -452,13 +522,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 <table class="tabela-modular">
                     <thead><tr><th>Serviço</th><th>Und</th><th>Qtd</th><th>Unit</th><th>Total</th><th>✖</th></tr></thead>
                     <tbody>
-                        ${foto.itensOrcamento.map((it, iIdx) => `
+                        ${itensRender.map((it, iIdx) => `
                             <tr>
-                                <td style="font-size:0.9em;">${it.desc}</td><td style="text-align:center;">${it.unid}</td>
-                                <td><input type="number" id="qtd-${idx}-${iIdx}" step="0.01" value="${it.qtd}" oninput="atualizarQtdItem(${idx}, ${iIdx}, this.value)"></td>
+                                <td style="font-size:0.9em;">
+                                    ${it.editadoManualmente ? '<span title="Quantidade editada manualmente" style="color:#d9534f;">✏️ </span>' : ''}${it.desc}
+                                </td>
+                                <td style="text-align:center;">${it.unid}</td>
+                                <td><input type="number" id="qtd-${idx}-${iIdx}" step="0.01" value="${it.qtdAdotada}" oninput="atualizarQtdItem(${idx}, '${it.origem}', '${it.idRef}', this.value)"></td>
                                 <td style="text-align:right;">R$ ${it.preco.toFixed(2).replace('.',',')}</td>
-                                <td id="totalItem-${idx}-${iIdx}" style="text-align:right; font-weight:bold;">R$ ${(it.qtd * it.preco).toFixed(2).replace('.',',')}</td>
-                                <td style="text-align:center;"><button onclick="removerItem(${idx}, ${iIdx})" style="color:red; border:none; background:none; cursor:pointer;">✖</button></td>
+                                <td id="totalItem-${idx}-${iIdx}" style="text-align:right; font-weight:bold;">R$ ${(it.qtdAdotada * it.preco).toFixed(2).replace('.',',')}</td>
+                                <td style="text-align:center;"><button onclick="removerItem(${idx}, '${it.origem}', '${it.idRef}')" style="color:red; border:none; background:none; cursor:pointer;">✖</button></td>
                             </tr>
                         `).join('')}
                     </tbody>
@@ -490,12 +563,41 @@ document.addEventListener('DOMContentLoaded', () => {
   window.mudarAcabamento = (idx, v) => { fotosSelecionadas[idx].acabamento = v; reconstruirComposicao(fotosSelecionadas[idx]); renderizarInterface(); autoSalvar(); };
   window.atualizarMedida = (idx, v) => { fotosSelecionadas[idx].medidaPrincipal = parseFloat(v) || 0; reconstruirComposicao(fotosSelecionadas[idx]); atualizarTotaisNoDOM(); autoSalvar(); };
   window.removerFoto = (idx) => { fotosSelecionadas.splice(idx, 1); renderizarInterface(); autoSalvar(); };
-  window.atualizarQtdItem = (idx, iIdx, val) => { fotosSelecionadas[idx].itensOrcamento[iIdx].qtd = parseFloat(val) || 0; atualizarTotaisNoDOM(); autoSalvar(); };
-  window.removerItem = (idx, iIdx) => { fotosSelecionadas[idx].itensOrcamento.splice(iIdx, 1); renderizarInterface(); autoSalvar(); };
+  
+  window.atualizarQtdItem = (idxFoto, origem, idRef, val) => { 
+      const f = fotosSelecionadas[idxFoto];
+      const qtd = parseFloat(val) || 0;
+      if (origem === 'automatico') {
+          const it = f.itensAutomaticos.find(i => i.idRef === idRef);
+          if (it) { it.qtdAdotada = qtd; it.editadoManualmente = true; }
+      } else {
+          const it = f.itensManuais.find(i => i.idRef === idRef);
+          if (it) { it.qtdAdotada = qtd; }
+      }
+      atualizarTotaisNoDOM(); 
+      autoSalvar(); 
+  };
+  
+  window.removerItem = (idxFoto, origem, idRef) => { 
+      const f = fotosSelecionadas[idxFoto];
+      if (origem === 'automatico') {
+          const it = f.itensAutomaticos.find(i => i.idRef === idRef);
+          if (it) it.removido = true;
+      } else {
+          f.itensManuais = f.itensManuais.filter(i => i.idRef !== idRef);
+      }
+      renderizarInterface(); 
+      autoSalvar(); 
+  };
+  
   window.atualizarLegenda = (idx, texto) => { fotosSelecionadas[idx].legenda = texto; autoSalvar(); };
 
   window.adicionarItemRapido = function(idxFoto, desc, unid, precoBase) {
-      fotosSelecionadas[idxFoto].itensOrcamento.push({ desc: desc, unid: unid, qtd: 1, preco: precoBase, multRef: null });
+      if(!fotosSelecionadas[idxFoto].itensManuais) fotosSelecionadas[idxFoto].itensManuais = [];
+      fotosSelecionadas[idxFoto].itensManuais.push({ 
+          idRef: 'man_' + Date.now() + Math.random(), 
+          origem: 'manual', desc: desc, unid: unid, qtdAdotada: 1, preco: precoBase, formula: 'Inserção Manual' 
+      });
       renderizarInterface();
       autoSalvar();
   };
@@ -524,7 +626,11 @@ document.addEventListener('DOMContentLoaded', () => {
       const select = document.getElementById(`resultado-${idxFoto}`);
       if (!select.value || select.value.startsWith('Aguardando') || select.value.startsWith('Nenhum') || select.value.startsWith('Digite')) return;
       const dadosItem = JSON.parse(select.value);
-      fotosSelecionadas[idxFoto].itensOrcamento.push({ desc: dadosItem.desc, unid: dadosItem.unid, qtd: 1, preco: dadosItem.preco, multRef: null });
+      if(!fotosSelecionadas[idxFoto].itensManuais) fotosSelecionadas[idxFoto].itensManuais = [];
+      fotosSelecionadas[idxFoto].itensManuais.push({ 
+          idRef: 'man_' + Date.now() + Math.random(),
+          origem: 'manual', desc: dadosItem.desc, unid: dadosItem.unid, qtdAdotada: 1, preco: dadosItem.preco, formula: 'Inserção Manual / Base Externa' 
+      });
       renderizarInterface();
       autoSalvar();
   };
@@ -705,7 +811,7 @@ document.addEventListener('DOMContentLoaded', () => {
     autoSalvar();
   });
 
-  // --- GERAÇÃO DO PDF (ANTI-CORTE V78) ---
+  // --- GERAÇÃO DO PDF E FORMATAÇÃO DE TABELAS ---
   btnGerarPDF.addEventListener('click', () => {
     const local = document.getElementById('localVistoria').value || 'Não informado';
     let dataF = '___/___/_____';
@@ -748,16 +854,13 @@ document.addEventListener('DOMContentLoaded', () => {
         let memHtml = `<table style="width: 100%; border-collapse: collapse; margin-top: 5px; font-size: 9pt; font-family: Tahoma, Arial, sans-serif; border: 1px solid #aaa;">
             <tr style="background:#f9f9f9;"><th style="border: 1px solid #aaa; padding:2px; text-align:left;">Serviço</th><th style="border: 1px solid #aaa; padding:2px;">Memória de Cálculo</th><th style="border: 1px solid #aaa; padding:2px;">Subtotal</th></tr>`;
 
-        f.itensOrcamento.forEach(it => { 
-            let t = it.qtd * it.preco; sub += t; 
-            linhas += `<tr><td style="border:1px solid #aaa;">${it.desc}</td><td style="text-align:center; border:1px solid #aaa;">${it.unid}</td><td style="text-align:center; border:1px solid #aaa;">${it.qtd}</td><td style="text-align:right; border:1px solid #aaa;">R$ ${it.preco.toFixed(2).replace('.',',')}</td><td style="text-align:right; font-weight:bold; border:1px solid #aaa;">R$ ${t.toFixed(2).replace('.',',')}</td></tr>`;
-            
-            let formTxt = "Inserção manual";
-            if (it.multRef === "CEIL_GRAMPO") formTxt = `Arred.Teto(${f.medidaPrincipal} / 0.3)`;
-            else if (it.multRef === "GRAMPO_X_008") formTxt = `Grampos x 0.08 kg`;
-            else if (it.multRef !== null && it.multRef !== undefined) formTxt = `${f.medidaPrincipal} x ${it.multRef} (Fator)`;
+        const itensRender = [...(f.itensAutomaticos || []).filter(i => !i.removido), ...(f.itensManuais || [])];
 
-            memHtml += `<tr><td style="border: 1px solid #aaa; padding:2px;">${it.desc}</td><td style="border: 1px solid #aaa; padding:2px; text-align:center; font-style:italic;">${formTxt} = ${it.qtd} ${it.unid}</td><td style="border: 1px solid #aaa; padding:2px; text-align:right; font-weight:bold;">R$ ${t.toFixed(2).replace('.',',')}</td></tr>`;
+        itensRender.forEach(it => { 
+            let t = it.qtdAdotada * it.preco; sub += t; 
+            linhas += `<tr><td style="border:1px solid #aaa;">${it.desc}</td><td style="text-align:center; border:1px solid #aaa;">${it.unid}</td><td style="text-align:center; border:1px solid #aaa;">${it.qtdAdotada}</td><td style="text-align:right; border:1px solid #aaa;">R$ ${it.preco.toFixed(2).replace('.',',')}</td><td style="text-align:right; font-weight:bold; border:1px solid #aaa;">R$ ${t.toFixed(2).replace('.',',')}</td></tr>`;
+            
+            memHtml += `<tr><td style="border: 1px solid #aaa; padding:2px;">${it.desc}</td><td style="border: 1px solid #aaa; padding:2px; text-align:center; font-style:italic;">${it.formula} = ${it.qtdAdotada} ${it.unid}</td><td style="border: 1px solid #aaa; padding:2px; text-align:right; font-weight:bold;">R$ ${t.toFixed(2).replace('.',',')}</td></tr>`;
         });
         somaDireta += sub;
         memHtml += `</table>`;
