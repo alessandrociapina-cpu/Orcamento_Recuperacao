@@ -25,19 +25,53 @@ document.addEventListener('DOMContentLoaded', () => {
       fetch('SINPLAN_ATUALIZADO.json').then(r => r.json()).then(d => baseSinapi = d).catch(e => console.warn("Base offline."));
   });
 
-  function parsePreco(valorStr) {
-      if (!valorStr) return 0;
-      let cln = valorStr.toString().replace('R$', '').trim().replace(/\./g, '').replace(',', '.');
-      return parseFloat(cln) || 0;
-  }
-
   function normalizarTexto(texto) {
       return texto ? texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase() : "";
   }
 
   // =========================================================================
-  // ARQUITETURA DE DADOS AUDITÁVEL (V80)
-  // Classificação: tipoItem ('servico', 'insumo', 'verba', 'equipamento')
+  // EXTRATORES INTELIGENTES (V81) - Proteção contra colunas quebradas do Excel
+  // =========================================================================
+  function getSinapiCodigo(item) {
+      for (let k in item) {
+          let key = k.toUpperCase();
+          if (key.includes('CÓDIGO') || key.includes('CODIGO') || key === 'FIELD1') return item[k];
+      }
+      return "S/C";
+  }
+
+  function getSinapiDescricao(item) {
+      for (let k in item) {
+          let key = k.toUpperCase();
+          if (key.includes('DESCRIÇÃO') || key.includes('DESCRICAO') || key.includes('SINTÉTICA') || key === 'FIELD2') return item[k];
+      }
+      return "";
+  }
+
+  function getSinapiPreco(item) {
+      for (let k in item) {
+          let key = k.toUpperCase();
+          if (key.includes('CUSTO') || key.includes('PREÇO') || key.includes('PRECO') || key === 'FIELD4') return item[k];
+      }
+      return 0;
+  }
+
+  function getSinapiUnidade(item) {
+      for (let k in item) {
+          let key = k.toUpperCase();
+          if (key === 'UNIDADE' || key === 'UNID' || key === 'FIELD3') return item[k];
+      }
+      return "un";
+  }
+
+  function parsePreco(valorStr) {
+      if (valorStr === null || valorStr === undefined || valorStr === "-") return 0;
+      let cln = valorStr.toString().replace('R$', '').trim().replace(/\./g, '').replace(',', '.');
+      return parseFloat(cln) || 0;
+  }
+
+  // =========================================================================
+  // ARQUITETURA DE DADOS AUDITÁVEL
   // =========================================================================
   const ACABAMENTOS = {
       'none': { desc: 'Sem acabamento adicional', preco: 0, busca: '' },
@@ -64,7 +98,6 @@ document.addEventListener('DOMContentLoaded', () => {
           composicao: [
               { desc: "Mão de Obra - Pedreiro com Encargos Complementares", unid: "h", precoUnit: 28.50, busca: "pedreiro com encargos", codigoBase: "88309", tipoItem: "servico", regra: { tipo: 'fator', valor: 1.5, arredondamento: '2casas' } },
               { desc: "Mão de Obra - Servente com Encargos Complementares", unid: "h", precoUnit: 22.30, busca: "servente com encargos", codigoBase: "88316", tipoItem: "servico", regra: { tipo: 'fator', valor: 1.0, arredondamento: '2casas' } },
-              // Regra específica do Aço implementada: 1 grampo a cada 25cm (0.25) pesando 0.395kg/m (total ~0.95kg/m linear real)
               { desc: "Armadura de Aço CA-50, Ø 8,0 mm (Vergalhão cortado/dobrado p/ grampos)", unid: "kg", precoUnit: 15.00, busca: "FORCE_ACO_CA50_KG", codigoBase: "92778", tipoItem: "insumo", regra: { tipo: 'grampo_kg', espacamento: 0.25, peso: 0.395, arredondamento: '2casas' } },
               { desc: "Adesivo Estrutural Epóxi Bicomponente", unid: "kg", precoUnit: 115.00, busca: "adesivo estrutural epoxi", codigoBase: "122", tipoItem: "insumo", regra: { tipo: 'grampo_adesivo', espacamento: 0.25, peso: 0.15, arredondamento: '2casas' } },
               { desc: "Graute Tixotrópico / Argamassa Polimérica", unid: "kg", precoUnit: 6.50, busca: "graute tixotropico", codigoBase: "33701", tipoItem: "insumo", regra: { tipo: 'fator', valor: 3.0, arredondamento: '2casas' } },
@@ -84,12 +117,43 @@ document.addEventListener('DOMContentLoaded', () => {
               { desc: "Emassamento com massa acrílica elastomérica (Localizado)", unid: "m²", precoUnit: 42.00, busca: "massa acrilica", codigoBase: "98553", tipoItem: "servico", regra: { tipo: 'fator', valor: 0.5, arredondamento: '2casas' } }
           ]
       },
+      UMIDADE_AGUA: {
+          nome: "Manchas de Umidade (Vazamento de Água)",
+          memorial: "1. Demolição do reboco e revestimento comprometido até a alvenaria nua, com margem de segurança de 30 a 50cm além da mancha visível.\n2. Limpeza da base.\n3. Aplicação de chapisco de aderência.\n4. Refazimento do emboço utilizando argamassa aditivada com impermeabilizante hidrófugo por cristalização.",
+          unidadeBase: "m²", fatorArea: 1.0,
+          composicao: [
+              { desc: "Demolição de reboco e limpeza de substrato (Localizado)", unid: "m²", precoUnit: 22.50, busca: "demolição reboco", codigoBase: "97622", regra: { tipo: 'fator', valor: 1, arredondamento: '2casas' } },
+              { desc: "Chapisco de aderência (SINAPI/TCPO)", unid: "m²", precoUnit: 12.00, busca: "chapisco", codigoBase: "87878", regra: { tipo: 'fator', valor: 1, arredondamento: '2casas' } },
+              { desc: "Reboco impermeável com aditivo hidrófugo", unid: "m²", precoUnit: 58.00, busca: "reboco impermeabilizante", codigoBase: "87529", regra: { tipo: 'fator', valor: 1, arredondamento: '2casas' } }
+          ]
+      },
+      UMIDADE_ESGOTO: {
+          nome: "Contaminação e Umidade (Vazamento de Esgoto)",
+          memorial: "1. Demolição profunda do revestimento contaminado (margem >50cm).\n2. Lavagem sanitizante com solução de hipoclorito de sódio a 5%, seguida de aplicação de biocida/fungicida para inibição de bolores.\n3. Chapisco de aderência.\n4. Novo reboco estrutural formulado com cimento resistente a sulfatos (RS).",
+          unidadeBase: "m²", fatorArea: 1.0,
+          composicao: [
+              { desc: "Demolição profunda de revestimento contaminado", unid: "m²", precoUnit: 30.00, busca: "demolição revestimento", codigoBase: "97622", regra: { tipo: 'fator', valor: 1, arredondamento: '2casas' } },
+              { desc: "Lavagem sanitizante com hipoclorito de sódio a 5%", unid: "m²", precoUnit: 45.00, busca: "hipoclorito", codigoBase: "98544", regra: { tipo: 'fator', valor: 1, arredondamento: '2casas' } },
+              { desc: "Chapisco com cimento resistente a sulfatos (RS)", unid: "m²", precoUnit: 18.00, busca: "chapisco", codigoBase: "87878", regra: { tipo: 'fator', valor: 1, arredondamento: '2casas' } },
+              { desc: "Reboco estrutural com cimento RS", unid: "m²", precoUnit: 82.00, busca: "reboco cimento", codigoBase: "87292", regra: { tipo: 'fator', valor: 1, arredondamento: '2casas' } }
+          ]
+      },
+      CORROSAO_ARMADURA: {
+          nome: "Corrosão de Armaduras / Desplacamento de Concreto",
+          memorial: "1. Apicoamento/escarificação do concreto degradado até 2cm na retaguarda da armadura.\n2. Limpeza mecânica abrasiva do aço exposto até alcançar o grau ST3 (metal branco).\n3. Aplicação de primer anticorrosivo rico em zinco em 360º da barra afetada.\n4. Aplicação de ponte de aderência epóxi no substrato de concreto antigo.\n5. Recomposição rigorosa da seção geométrica com graute ou argamassa polimérica tixotrópica estrutural.",
+          unidadeBase: "m²", fatorArea: 1.0,
+          composicao: [
+              { desc: "Apicoamento/escarificação mecânica do concreto", unid: "m²", precoUnit: 110.00, busca: "apicoamento", codigoBase: "97644", regra: { tipo: 'fator', valor: 1, arredondamento: '2casas' } },
+              { desc: "Primer anticorrosivo base zinco 360º na armadura", unid: "m²", precoUnit: 145.00, busca: "primer zinco", codigoBase: "100722", regra: { tipo: 'fator', valor: 1, arredondamento: '2casas' } },
+              { desc: "Ponte de aderência estrutural à base de epóxi", unid: "m²", precoUnit: 85.00, busca: "ponte aderencia", codigoBase: "98547", regra: { tipo: 'fator', valor: 1, arredondamento: '2casas' } },
+              { desc: "Recomposição com graute tixotrópico estrutural", unid: "m²", precoUnit: 190.00, busca: "graute tixotropico", codigoBase: "100724", regra: { tipo: 'fator', valor: 1, arredondamento: '2casas' } }
+          ]
+      },
       RECALQUE_ESTACA_MEGA: {
           nome: "Recalque de Fundação (Reforço com Estaca Mega)",
           memorial: "1. Mobilização de equipamentos e monitoramento da estrutura.\n2. Escavação manual e escoramento para abertura de poço.\n3. Cravação de estacas mega de concreto por macacagem (comprimento estimado, a ser confirmado in loco por leitura de manômetro/nega).\n4. Encunhamento e concretagem do bloco de transição com cunhas metálicas.\n5. Tratamento localizado de rachaduras na alvenaria com técnica sanduíche.\n6. Recomposição arquitetônica (piso e pintura em pano inteiro) e remoção de entulho.",
           unidadeBase: "un", fatorArea: 1.0, 
           composicao: [
-              // Mínimo de 1 estabelecido por regra
               { desc: "Mobilização de equipamento leve (Macaco Hidráulico)", unid: "un", precoUnit: 350.00, busca: "FORCE_MOBILIZACAO_MACACO", codigoBase: "MOB-01", tipoItem: "verba", regra: { tipo: 'fator', valor: 1, minimo: 1, arredondamento: 'ceil' } },
               { desc: "Escavação manual de vala para bloco/poço", unid: "un", precoUnit: 180.00, busca: "FORCE_ESCAVACAO_MANUAL", codigoBase: "93358", tipoItem: "servico", regra: { tipo: 'fator', valor: 1, arredondamento: 'ceil' } },
               { desc: "Cravação de Estaca Mega de concreto (estimado 10m)", unid: "m", precoUnit: 320.00, busca: "FORCE_ESTACA_MEGA", codigoBase: "MEGA-01", tipoItem: "servico", regra: { tipo: 'fator', valor: 10, arredondamento: '2casas' } },
@@ -103,9 +167,9 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   // =========================================================================
-  // SALVAMENTO E CARREGAMENTO DE PROJETO (CHAVE FORÇADA v80)
+  // SALVAMENTO E CARREGAMENTO DE PROJETO (CHAVE FORÇADA v81)
   // =========================================================================
-  const STORAGE_KEY = 'projetoPatologiasSabesp_v80';
+  const STORAGE_KEY = 'projetoPatologiasSabesp_v81';
   let timeoutAutoSave;
   
   function autoSalvar() {
@@ -261,7 +325,6 @@ document.addEventListener('DOMContentLoaded', () => {
       let qtdCalculada = m;
       let formulaTxt = "";
 
-      // 1. Motor de Regras Matemáticas
       if (c.regra.tipo === 'fator') {
           qtdCalculada = m * c.regra.valor;
           formulaTxt = `${m} x ${c.regra.valor} (Fator)`;
@@ -276,20 +339,18 @@ document.addEventListener('DOMContentLoaded', () => {
           formulaTxt = `Arred.Teto(${m} / ${c.regra.espacamento}) x ${c.regra.peso} kg`;
       }
 
-      // 2. Motor de Arredondamento Técnico
       if (c.regra.arredondamento === 'ceil') {
           qtdCalculada = Math.ceil(qtdCalculada);
       } else if (c.regra.arredondamento === 'inteiro') {
           qtdCalculada = Math.round(qtdCalculada);
       }
       
-      // 3. Mínimo Técnico Contratual
       if (c.regra.minimo !== undefined && qtdCalculada < c.regra.minimo) {
           qtdCalculada = c.regra.minimo;
           formulaTxt += ` (Mínimo adotado: ${c.regra.minimo})`;
       }
 
-      // 4. Motor de Busca Seguro (Prioridade por Código)
+      // Motor de Busca Inteligente (V81)
       let preco = c.precoUnit;
       let desc = c.desc;
       let fontePreco = "Tabela Interna (Fallback)";
@@ -297,21 +358,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (baseSinapi.length > 0 && !c.busca.startsWith('FORCE_')) {
           let s = null;
-          // Busca prioritária por código real da base
           if (c.codigoBase) {
-              s = baseSinapi.find(i => i["CÓDIGO"] == c.codigoBase || i["FIELD1"] == c.codigoBase);
+              s = baseSinapi.find(i => getSinapiCodigo(i) == c.codigoBase);
           }
-          // Fallback por texto apenas se o código falhar
           if (!s) {
               const termoNorm = normalizarTexto(c.busca);
-              s = baseSinapi.find(i => normalizarTexto(i["TABELA DE CUSTOS SINTÉTICA"]).includes(termoNorm));
+              s = baseSinapi.find(i => normalizarTexto(getSinapiDescricao(i)).includes(termoNorm));
           }
           
           if (s) { 
-              preco = parsePreco(s["FIELD4"]); 
-              desc = s["TABELA DE CUSTOS SINTÉTICA"]; 
-              fontePreco = "SINAPI/SINPLAN";
-              codigoEfetivo = s["CÓDIGO"] || s["FIELD1"] || c.codigoBase;
+              let precoS = getSinapiPreco(s);
+              if(precoS !== "-" && precoS !== "") {
+                  preco = parsePreco(precoS); 
+              }
+              desc = getSinapiDescricao(s); 
+              fontePreco = "SINAPI";
+              codigoEfetivo = getSinapiCodigo(s);
           }
       }
 
@@ -363,7 +425,6 @@ document.addEventListener('DOMContentLoaded', () => {
           const anterior = estadoAnterior[idRef];
 
           if (!(anterior && anterior.removido)) {
-              // Convertendo a estrutura simplificada do acabamento para a engine nova
               const cAcab = { desc: a.desc, unid: a.unid, precoUnit: a.preco, busca: a.busca, codigoBase: a.codigoBase, tipoItem: a.tipoItem, regra: { tipo: 'fator', valor: TIPOLOGIAS[foto.tipo].fatorArea, arredondamento: '2casas' } };
               const res = processarRegraEBusca(cAcab, m);
 
@@ -600,14 +661,19 @@ document.addEventListener('DOMContentLoaded', () => {
       select.innerHTML = '';
       if(termo.length < 3) { select.innerHTML = '<option value="">Digite 3 letras...</option>'; return; }
       
-      const resultados = baseSinapi.filter(i => i["TABELA DE CUSTOS SINTÉTICA"] && normalizarTexto(i["TABELA DE CUSTOS SINTÉTICA"]).includes(termo)).slice(0, 40);
+      const resultados = baseSinapi.filter(i => {
+          const d = getSinapiDescricao(i);
+          return d && normalizarTexto(d).includes(termo);
+      }).slice(0, 40);
+      
       if(resultados.length === 0) { select.innerHTML = '<option value="">Nada encontrado.</option>'; return; }
 
       resultados.forEach(item => {
-          const desc = item["TABELA DE CUSTOS SINTÉTICA"];
-          const preco = parsePreco(item["FIELD4"]);
-          const unid = item["FIELD3"] || "un";
-          const codigo = item["CÓDIGO"] || item["FIELD1"] || "S/C";
+          const desc = getSinapiDescricao(item);
+          const preco = parsePreco(getSinapiPreco(item));
+          const unid = getSinapiUnidade(item);
+          const codigo = getSinapiCodigo(item);
+          
           const opt = document.createElement('option');
           opt.value = JSON.stringify({ desc, unid, preco, codigo });
           opt.text = `[${codigo}] ${desc.substring(0,50)}... | ${unid} | R$ ${preco.toFixed(2)}`;
@@ -624,7 +690,7 @@ document.addEventListener('DOMContentLoaded', () => {
           idRef: 'man_' + Date.now() + Math.random(),
           origem: 'manual', categoria: 'servico', desc: dadosItem.desc, unid: dadosItem.unid, 
           qtdAdotada: 1, preco: dadosItem.preco, formula: 'Inserção Manual / Busca',
-          codigoEfetivo: dadosItem.codigo, fontePreco: 'SINAPI/SINPLAN', precoRef: dadosItem.preco
+          codigoEfetivo: dadosItem.codigo, fontePreco: 'SINAPI', precoRef: dadosItem.preco
       });
       renderizarInterface();
       autoSalvar();
@@ -806,7 +872,7 @@ document.addEventListener('DOMContentLoaded', () => {
     autoSalvar();
   });
 
-  // --- GERAÇÃO DO PDF (ANTI-CORTE V80) ---
+  // --- GERAÇÃO DO PDF E FORMATAÇÃO DE TABELAS ---
   btnGerarPDF.addEventListener('click', () => {
     const local = document.getElementById('localVistoria').value || 'Não informado';
     let dataF = '___/___/_____';
@@ -855,7 +921,6 @@ document.addEventListener('DOMContentLoaded', () => {
         itensRender.forEach(it => { 
             let t = it.qtdAdotada * it.preco; sub += t; 
             
-            // Tabela do Orçamento (Foto)
             linhas += `<tr>
                 <td style="border:1px solid #aaa;"><span style="color:#12D0FF; font-weight:bold;">[${it.codigoEfetivo}]</span> ${it.desc}</td>
                 <td style="text-align:center; border:1px solid #aaa;">${it.unid}</td>
@@ -864,7 +929,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td style="text-align:right; font-weight:bold; border:1px solid #aaa;">R$ ${t.toFixed(2).replace('.',',')}</td>
             </tr>`;
             
-            // Tabela de Memória de Cálculo (Final do PDF)
             memHtml += `<tr>
                 <td style="border: 1px solid #aaa; padding:2px;">[${it.codigoEfetivo}] ${it.desc}</td>
                 <td style="border: 1px solid #aaa; padding:2px; text-align:center; font-style:italic;">${it.formula} = ${it.qtdAdotada} ${it.unid}</td>
