@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let fotoAtualCropIndex = null;
   let assinaturaBase64 = null;
 
-  // LEITURA MULTI-ARQUIVOS (Funde as 3 bases de dados)
+  // LEITURA MULTI-ARQUIVOS
   Promise.all([
       fetch('SINAPI_ATUALIZADO.json').then(r => r.ok ? r.json() : []).catch(() => []),
       fetch('SINPLAN_ATUALIZADO.json').then(r => r.ok ? r.json() : []).catch(() => []),
@@ -34,14 +34,11 @@ document.addEventListener('DOMContentLoaded', () => {
       return texto ? texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase() : "";
   }
 
-  // =========================================================================
-  // EXTRATORES INTELIGENTES MULTI-FORMATO
-  // =========================================================================
   function getSinapiCodigo(item) {
       for (let k in item) {
           let key = k.toUpperCase();
           if (key.includes('CÓDIGO') || key.includes('CODIGO') || key === 'FIELD1') return item[k];
-          if (key === 'SÃO PAULO' && item[k] && item[k].toString().includes('.SER')) return item[k]; // Regra do SINPLAN
+          if (key === 'SÃO PAULO' && item[k] && item[k].toString().includes('.SER')) return item[k]; 
       }
       return "S/C";
   }
@@ -77,7 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // =========================================================================
-  // ARQUITETURA DE DADOS AUDITÁVEL (Base Corrigida)
+  // ARQUITETURA DE DADOS (Matriz Analítica Validada)
   // =========================================================================
   const ACABAMENTOS = {
       'none': { desc: 'Sem acabamento adicional', preco: 0, busca: '' },
@@ -93,8 +90,9 @@ document.addEventListener('DOMContentLoaded', () => {
           memorial: "1. Abertura de sulco superficial ao longo da diretriz da fissura (escarificação leve do revestimento).\n2. Limpeza enérgica com escova e ar comprimido para remoção de partículas soltas.\n3. Preenchimento do vão com argamassa polimérica ou resina epóxi de baixa viscosidade, visando a recomposição e estabilização superficial.\n4. Regularização da superfície (localizada) para posterior recebimento de acabamento.",
           unidadeBase: "m", fatorArea: 0.5,
           composicao: [
-              { desc: "Abertura de trinca/fissura superficial", unid: "m", precoUnit: 14.50, busca: "abertura trinca", codigoBase: "90400", tipoItem: "servico", regra: { tipo: 'fator', valor: 1, arredondamento: '2casas' } },
-              { desc: "Preenchimento com argamassa polimérica de reparo (Localizado)", unid: "m", precoUnit: 3.98, busca: "FORCE_ARGAMASSA", codigoBase: "130", tipoItem: "insumo", regra: { tipo: 'fator', valor: 1.5, arredondamento: '2casas' } }
+              { desc: "Mão de Obra - Pedreiro com Encargos Complementares", unid: "h", precoUnit: 35.87, busca: "pedreiro com encargos", codigoBase: "88309", tipoItem: "servico", regra: { tipo: 'fator', valor: 0.8, arredondamento: '2casas' } },
+              { desc: "Argamassa Polimérica de Reparo Estrutural", unid: "kg", precoUnit: 3.98, busca: "FORCE_ARGAMASSA", codigoBase: "130", tipoItem: "insumo", regra: { tipo: 'fator', valor: 1.5, arredondamento: '2casas' } },
+              { desc: "Lixa, disco de corte e brocas (Rateio/Desgaste)", unid: "un", precoUnit: 45.00, busca: "FORCE_DESGASTE", codigoBase: "3774", tipoItem: "insumo", regra: { tipo: 'fator', valor: 0.02, arredondamento: '2casas' } }
           ]
       },
       TRINCA_PASSIVA_ESTRUTURAL: {
@@ -104,11 +102,10 @@ document.addEventListener('DOMContentLoaded', () => {
           composicao: [
               { desc: "Mão de Obra - Pedreiro com Encargos Complementares", unid: "h", precoUnit: 35.87, busca: "pedreiro com encargos", codigoBase: "88309", tipoItem: "servico", regra: { tipo: 'fator', valor: 1.5, arredondamento: '2casas' } },
               { desc: "Mão de Obra - Servente com Encargos Complementares", unid: "h", precoUnit: 31.15, busca: "servente com encargos", codigoBase: "88316", tipoItem: "servico", regra: { tipo: 'fator', valor: 1.0, arredondamento: '2casas' } },
-              { desc: "Aço CA-50, Ø 8,0 mm, Vergalhão (Corte e Dobra manual)", unid: "kg", precoUnit: 6.55, busca: "FORCE_ACO", codigoBase: "33", tipoItem: "insumo", regra: { tipo: 'grampo_kg', espacamento: 0.25, peso: 0.395, arredondamento: '2casas' } },
-              { desc: "Adesivo Estrutural à Base de Resina Epóxi, Pastoso", unid: "kg", precoUnit: 44.30, busca: "FORCE_EPOXI", codigoBase: "131", tipoItem: "insumo", regra: { tipo: 'grampo_adesivo', espacamento: 0.25, peso: 0.15, arredondamento: '2casas' } },
-              { desc: "Argamassa Polimérica de Reparo Estrutural / Graute", unid: "kg", precoUnit: 3.98, busca: "FORCE_GRAUTE", codigoBase: "130", tipoItem: "insumo", regra: { tipo: 'fator', valor: 3.0, arredondamento: '2casas' } },
-              { desc: "Lixa, disco de corte e brocas (Rateio/Desgaste)", unid: "un", precoUnit: 45.00, busca: "FORCE_DESGASTE", codigoBase: "3774", tipoItem: "insumo", regra: { tipo: 'fator', valor: 0.05, arredondamento: '2casas' } },
-              { desc: "Chapisco e emboço para regularização (Localizado)", unid: "m²", precoUnit: 52.00, busca: "reboco argamassa", codigoBase: "87292", tipoItem: "servico", regra: { tipo: 'fator', valor: 0.5, arredondamento: '2casas' } }
+              { desc: "Aço CA-50, Ø 8,0 mm, Vergalhão (Material puro)", unid: "kg", precoUnit: 6.55, busca: "FORCE_ACO", codigoBase: "33", tipoItem: "insumo", regra: { tipo: 'fator', valor: 0.95, arredondamento: '2casas' } },
+              { desc: "Adesivo Estrutural à Base de Resina Epóxi, Pastoso", unid: "kg", precoUnit: 44.30, busca: "FORCE_EPOXI", codigoBase: "131", tipoItem: "insumo", regra: { tipo: 'fator', valor: 0.60, arredondamento: '2casas' } },
+              { desc: "Argamassa Polimérica de Reparo Estrutural (Graute)", unid: "kg", precoUnit: 3.98, busca: "FORCE_GRAUTE", codigoBase: "130", tipoItem: "insumo", regra: { tipo: 'fator', valor: 3.0, arredondamento: '2casas' } },
+              { desc: "Lixa, disco de corte e brocas (Rateio/Desgaste)", unid: "un", precoUnit: 45.00, busca: "FORCE_DESGASTE", codigoBase: "3774", tipoItem: "insumo", regra: { tipo: 'fator', valor: 0.05, arredondamento: '2casas' } }
           ]
       },
       TRINCA_ATIVA: {
@@ -116,11 +113,11 @@ document.addEventListener('DOMContentLoaded', () => {
           memorial: "1. Abertura de sulco em 'V' com dimensões proporcionais à movimentação esperada.\n2. Limpeza e secagem rigorosa da base.\n3. Inserção de limitador de profundidade (tarugo de polietileno expandido) para evitar aderência no fundo da junta.\n4. Aplicação de primer e preenchimento integral com selante elastomérico flexível (PU).\n5. Colocação de tela de poliéster engastada na camada de acabamento (bandagem).\n6. Emassamento com massa acrílica flexível para dissipação de tensões longitudinais.",
           unidadeBase: "m", fatorArea: 0.5,
           composicao: [
-              { desc: "Abertura de junta/sulco em 'V' e limpeza", unid: "m", precoUnit: 22.00, busca: "abertura junta", codigoBase: "90400", tipoItem: "servico", regra: { tipo: 'fator', valor: 1, arredondamento: '2casas' } },
-              { desc: "Aplicação de fundo de junta (tarugo de polietileno)", unid: "m", precoUnit: 5.50, busca: "fundo de junta", codigoBase: "4033", tipoItem: "insumo", regra: { tipo: 'fator', valor: 1, arredondamento: '2casas' } },
-              { desc: "Selamento com mastique elastomérico (PU) e primer", unid: "m", precoUnit: 62.00, busca: "selante poliuretano", codigoBase: "98546", tipoItem: "servico", regra: { tipo: 'fator', valor: 1, arredondamento: '2casas' } },
-              { desc: "Tratamento em 'sanduíche' com tela de poliéster e base coat", unid: "m", precoUnit: 35.00, busca: "tela poliester", codigoBase: "39474", tipoItem: "insumo", regra: { tipo: 'fator', valor: 1, arredondamento: '2casas' } },
-              { desc: "Emassamento com massa acrílica elastomérica (Localizado)", unid: "m²", precoUnit: 42.00, busca: "massa acrilica", codigoBase: "98553", tipoItem: "servico", regra: { tipo: 'fator', valor: 0.5, arredondamento: '2casas' } }
+              { desc: "Mão de Obra - Pedreiro com Encargos Complementares", unid: "h", precoUnit: 35.87, busca: "pedreiro com encargos", codigoBase: "88309", tipoItem: "servico", regra: { tipo: 'fator', valor: 1.2, arredondamento: '2casas' } },
+              { desc: "Tarugo de Polietileno Expandido (Fundo de junta)", unid: "m", precoUnit: 5.50, busca: "FORCE_TARUGO", codigoBase: "4033", tipoItem: "insumo", regra: { tipo: 'fator', valor: 1.05, arredondamento: '2casas' } },
+              { desc: "Selante Elástico Base Poliuretano (PU)", unid: "ml", precoUnit: 0.08, busca: "FORCE_PU", codigoBase: "142", tipoItem: "insumo", regra: { tipo: 'fator', valor: 300, arredondamento: '2casas' } },
+              { desc: "Tela de Fibra de Vidro ou Poliéster p/ trincas", unid: "m", precoUnit: 15.00, busca: "FORCE_TELA", codigoBase: "39474", tipoItem: "insumo", regra: { tipo: 'fator', valor: 1.05, arredondamento: '2casas' } },
+              { desc: "Argamassa Polimérica (Base Coat do sanduíche)", unid: "kg", precoUnit: 3.98, busca: "FORCE_BASECOAT", codigoBase: "130", tipoItem: "insumo", regra: { tipo: 'fator', valor: 2.0, arredondamento: '2casas' } }
           ]
       },
       UMIDADE_AGUA: {
@@ -139,7 +136,7 @@ document.addEventListener('DOMContentLoaded', () => {
           unidadeBase: "m²", fatorArea: 1.0,
           composicao: [
               { desc: "Demolição profunda de revestimento contaminado", unid: "m²", precoUnit: 30.00, busca: "demolição revestimento", codigoBase: "97622", tipoItem: "servico", regra: { tipo: 'fator', valor: 1, arredondamento: '2casas' } },
-              { desc: "Lavagem sanitizante com hipoclorito de sódio a 5%", unid: "m²", precoUnit: 45.00, busca: "hipoclorito", codigoBase: "98544", tipoItem: "servico", regra: { tipo: 'fator', valor: 1, arredondamento: '2casas' } },
+              { desc: "Hipoclorito de Sódio a 5% (Limpeza sanitizante)", unid: "L", precoUnit: 45.00, busca: "FORCE_HIPOCLORITO", codigoBase: "11566", tipoItem: "insumo", regra: { tipo: 'fator', valor: 0.5, arredondamento: '2casas' } },
               { desc: "Chapisco com cimento resistente a sulfatos (RS)", unid: "m²", precoUnit: 18.00, busca: "chapisco", codigoBase: "87878", tipoItem: "servico", regra: { tipo: 'fator', valor: 1, arredondamento: '2casas' } },
               { desc: "Reboco estrutural com cimento RS", unid: "m²", precoUnit: 82.00, busca: "reboco cimento", codigoBase: "87292", tipoItem: "servico", regra: { tipo: 'fator', valor: 1, arredondamento: '2casas' } }
           ]
@@ -150,24 +147,21 @@ document.addEventListener('DOMContentLoaded', () => {
           unidadeBase: "m²", fatorArea: 1.0,
           composicao: [
               { desc: "Apicoamento/escarificação mecânica do concreto", unid: "m²", precoUnit: 110.00, busca: "apicoamento", codigoBase: "97644", tipoItem: "servico", regra: { tipo: 'fator', valor: 1, arredondamento: '2casas' } },
-              { desc: "Primer anticorrosivo base zinco 360º na armadura", unid: "m²", precoUnit: 145.00, busca: "primer zinco", codigoBase: "100722", tipoItem: "servico", regra: { tipo: 'fator', valor: 1, arredondamento: '2casas' } },
-              { desc: "Ponte de aderência estrutural à base de epóxi", unid: "m²", precoUnit: 85.00, busca: "ponte aderencia", codigoBase: "98547", tipoItem: "servico", regra: { tipo: 'fator', valor: 1, arredondamento: '2casas' } },
+              { desc: "Primer rico em zinco (Tratamento do aço)", unid: "L", precoUnit: 145.00, busca: "FORCE_PRIMER", codigoBase: "100722", tipoItem: "insumo", regra: { tipo: 'fator', valor: 0.3, arredondamento: '2casas' } },
+              { desc: "Adesivo Estrutural Epóxi (Ponte de Aderência)", unid: "kg", precoUnit: 44.30, busca: "FORCE_EPOXI", codigoBase: "131", tipoItem: "insumo", regra: { tipo: 'fator', valor: 0.8, arredondamento: '2casas' } },
               { desc: "Recomposição com graute tixotrópico estrutural", unid: "m²", precoUnit: 190.00, busca: "graute tixotropico", codigoBase: "100724", tipoItem: "servico", regra: { tipo: 'fator', valor: 1, arredondamento: '2casas' } }
           ]
       },
       RECALQUE_ESTACA_MEGA: {
           nome: "Recalque de Fundação (Reforço com Estaca Mega)",
-          memorial: "1. Mobilização de equipamentos e monitoramento da estrutura.\n2. Escavação manual e escoramento para abertura de poço.\n3. Cravação de estacas mega de concreto por macacagem (comprimento estimado, a ser confirmado in loco por leitura de manômetro/nega).\n4. Encunhamento e concretagem do bloco de transição com cunhas metálicas.\n5. Tratamento localizado de rachaduras na alvenaria com técnica sanduíche.\n6. Recomposição arquitetônica (piso e pintura em pano inteiro) e remoção de entulho.",
+          memorial: "1. Mobilização de equipamentos e monitoramento da estrutura.\n2. Escavação manual e escoramento para abertura de poço.\n3. Cravação de estacas mega de concreto por macacagem (comprimento estimado, a ser confirmado in loco por leitura de manômetro/nega).\n4. Encunhamento e concretagem do bloco de transição com cunhas metálicas.\n5. Recomposição arquitetônica e remoção de entulho.",
           unidadeBase: "un", fatorArea: 1.0, 
           composicao: [
-              { desc: "Mobilização de equipamento leve (Macaco Hidráulico)", unid: "un", precoUnit: 350.00, busca: "FORCE_MOBILIZACAO_MACACO", codigoBase: "MOB-01", tipoItem: "verba", regra: { tipo: 'fator', valor: 1, minimo: 1, arredondamento: 'ceil' } },
-              { desc: "Escavação manual de vala para bloco/poço", unid: "un", precoUnit: 180.00, busca: "FORCE_ESCAVACAO_MANUAL", codigoBase: "93358", tipoItem: "servico", regra: { tipo: 'fator', valor: 1, arredondamento: 'ceil' } },
-              { desc: "Cravação de Estaca Mega de concreto (estimado 10m)", unid: "m", precoUnit: 320.00, busca: "FORCE_ESTACA_MEGA", codigoBase: "MEGA-01", tipoItem: "servico", regra: { tipo: 'fator', valor: 10, arredondamento: '2casas' } },
-              { desc: "Encunhamento com cunhas metálicas e graute de alta resistência", unid: "un", precoUnit: 950.00, busca: "FORCE_ENCUNHAMENTO_METALICO", codigoBase: "ENC-01", tipoItem: "servico", regra: { tipo: 'fator', valor: 1, arredondamento: 'ceil' } },
-              { desc: "Tratamento de rachaduras em 'sanduíche' c/ tela de poliéster e argamassa (Local)", unid: "m", precoUnit: 45.00, busca: "tratamento trincas", codigoBase: "39474", tipoItem: "servico", regra: { tipo: 'fator', valor: 3, arredondamento: '2casas' } },
-              { desc: "Recomposição de contrapiso e piso cerâmico", unid: "m²", precoUnit: 150.00, busca: "contrapiso", codigoBase: "87248", tipoItem: "servico", regra: { tipo: 'fator', valor: 2, arredondamento: '2casas' } },
-              { desc: "Emassamento e Pintura de Acabamento da Parede (Pano Inteiro)", unid: "m²", precoUnit: 38.00, busca: "pintura latex", codigoBase: "100717", tipoItem: "servico", regra: { tipo: 'fator', valor: 9, arredondamento: '2casas' } },
-              { desc: "Remoção de entulho / Caçamba (rateio)", unid: "un", precoUnit: 401.00, busca: "caçamba", codigoBase: "32.109.000009.SER", tipoItem: "servico", regra: { tipo: 'fator', valor: 0.5, arredondamento: '2casas' } }
+              { desc: "Mobilização de equipamento leve (Macaco Hidráulico)", unid: "un", precoUnit: 350.00, busca: "FORCE_MOBILIZACAO", codigoBase: "MOB-01", tipoItem: "verba", regra: { tipo: 'fator', valor: 1, minimo: 1, arredondamento: 'ceil' } },
+              { desc: "Escavação manual de vala para poço", unid: "m³", precoUnit: 180.00, busca: "escavação manual", codigoBase: "93358", tipoItem: "servico", regra: { tipo: 'fator', valor: 1.2, arredondamento: '2casas' } },
+              { desc: "Cravação de Estaca Mega de concreto (Peças)", unid: "m", precoUnit: 320.00, busca: "FORCE_ESTACA", codigoBase: "MEG-01", tipoItem: "servico", regra: { tipo: 'fator', valor: 10, arredondamento: '2casas' } },
+              { desc: "Encunhamento metálico e Grauteamento do bloco", unid: "un", precoUnit: 950.00, busca: "FORCE_ENCUNHAMENTO", codigoBase: "ENC-01", tipoItem: "servico", regra: { tipo: 'fator', valor: 1, arredondamento: 'ceil' } },
+              { desc: "Caçamba para remoção de entulho", unid: "un", precoUnit: 401.00, busca: "caçamba", codigoBase: "32.109.000009.SER", tipoItem: "servico", regra: { tipo: 'fator', valor: 0.5, arredondamento: '2casas' } }
           ]
       },
       RECALQUE_EROSAO_PIPING: {
@@ -175,26 +169,16 @@ document.addEventListener('DOMContentLoaded', () => {
           memorial: "1. Perfuração do contrapiso ou fundação para acesso aos vazios.\n2. Injeção sob pressão de calda de cimento ou concreto fluido para preenchimento da erosão e estabilização do solo carreável.",
           unidadeBase: "m³", fatorArea: 1.0,
           composicao: [
-              { desc: "Furação mecanizada de laje/contrapiso p/ acesso", unid: "un", precoUnit: 35.00, busca: "furo", codigoBase: "FURO-01", tipoItem: "servico", regra: { tipo: 'fator', valor: 2, arredondamento: 'ceil' } },
-              { desc: "Injeção de calda de cimento/concreto fluido", unid: "m³", precoUnit: 680.00, busca: "calda de cimento", codigoBase: "INJ-01", tipoItem: "servico", regra: { tipo: 'fator', valor: 1, arredondamento: '2casas' } }
-          ]
-      },
-      ATAQUE_SULFATOS: {
-          nome: "Ataque Químico por Sulfatos (Concreto)",
-          memorial: "1. Demolição e apicoamento do concreto estrutural contaminado.\n2. Lavagem química e neutralização da base.\n3. Recomposição estrutural utilizando argamassa ou graute formulado com cimento Resistente a Sulfatos (RS).",
-          unidadeBase: "m²", fatorArea: 1.0,
-          composicao: [
-              { desc: "Apicoamento/escarificação do concreto", unid: "m²", precoUnit: 110.00, busca: "apicoamento", codigoBase: "97644", tipoItem: "servico", regra: { tipo: 'fator', valor: 1, arredondamento: '2casas' } },
-              { desc: "Lavagem química preparatória", unid: "m²", precoUnit: 45.00, busca: "lavagem", codigoBase: "LAV-01", tipoItem: "servico", regra: { tipo: 'fator', valor: 1, arredondamento: '2casas' } },
-              { desc: "Recomposição com Graute Estrutural (Cimento RS)", unid: "m²", precoUnit: 220.00, busca: "graute", codigoBase: "GRT-01", tipoItem: "servico", regra: { tipo: 'fator', valor: 1, arredondamento: '2casas' } }
+              { desc: "Furação mecanizada de laje/contrapiso", unid: "un", precoUnit: 35.00, busca: "furo", codigoBase: "98387", tipoItem: "servico", regra: { tipo: 'fator', valor: 2, arredondamento: 'ceil' } },
+              { desc: "Calda de cimento (Injeção sob pressão)", unid: "kg", precoUnit: 1.20, busca: "calda de cimento", codigoBase: "1358", tipoItem: "insumo", regra: { tipo: 'fator', valor: 600, arredondamento: '2casas' } }
           ]
       }
   };
 
   // =========================================================================
-  // SALVAMENTO E CARREGAMENTO DE PROJETO (CHAVE FORÇADA v83)
+  // SALVAMENTO E CARREGAMENTO DE PROJETO (CHAVE FORÇADA v84)
   // =========================================================================
-  const STORAGE_KEY = 'projetoPatologiasSabesp_v83';
+  const STORAGE_KEY = 'projetoPatologiasSabesp_v84';
   let timeoutAutoSave;
   
   function autoSalvar() {
@@ -353,15 +337,6 @@ document.addEventListener('DOMContentLoaded', () => {
       if (c.regra.tipo === 'fator') {
           qtdCalculada = m * c.regra.valor;
           formulaTxt = `${m} x ${c.regra.valor} (Fator)`;
-      } else if (c.regra.tipo === 'teto_grampo') {
-          qtdCalculada = Math.ceil(m / c.regra.espacamento);
-          formulaTxt = `Arred.Teto(${m} / ${c.regra.espacamento})`;
-      } else if (c.regra.tipo === 'grampo_kg') {
-          qtdCalculada = Math.ceil(m / c.regra.espacamento) * c.regra.peso;
-          formulaTxt = `Arred.Teto(${m} / ${c.regra.espacamento}) x ${c.regra.peso} kg`;
-      } else if (c.regra.tipo === 'grampo_adesivo') {
-          qtdCalculada = Math.ceil(m / c.regra.espacamento) * c.regra.peso;
-          formulaTxt = `Arred.Teto(${m} / ${c.regra.espacamento}) x ${c.regra.peso} kg`;
       }
 
       if (c.regra.arredondamento === 'ceil') {
@@ -375,7 +350,6 @@ document.addEventListener('DOMContentLoaded', () => {
           formulaTxt += ` (Mínimo adotado: ${c.regra.minimo})`;
       }
 
-      // Motor de Busca Seguro com Trava Anti-Alucinação para Insumos (V83)
       let preco = c.precoUnit;
       let desc = c.desc;
       let fontePreco = "Tabela Interna (Fallback)";
@@ -388,8 +362,7 @@ document.addEventListener('DOMContentLoaded', () => {
               s = baseSinapi.find(i => getSinapiCodigo(i) == c.codigoBase);
           }
           
-          // Se não achar por código, e NÃO FOR INSUMO, procura por texto.
-          // Insumos estão travados para não buscarem textos aleatórios (ex: Guarda-corpo).
+          // Busca por texto bloqueada para insumos na v84
           if (!s && c.tipoItem !== 'insumo') {
               const termoNorm = normalizarTexto(c.busca);
               s = baseSinapi.find(i => normalizarTexto(getSinapiDescricao(i)).includes(termoNorm));
