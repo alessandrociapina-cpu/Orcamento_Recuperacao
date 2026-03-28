@@ -22,7 +22,7 @@
     body { margin: 0; padding: 0; overflow-x: hidden; font-family: Tahoma, Arial, sans-serif; background-color: #f4f4f4; color: #333; } 
     .container { max-width: 900px; margin: auto; padding: 15px; background: #fff; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
 
-    /* JANELA FLUTUANTE DE ATUALIZAÇÃO (TOOLTIP PADRÃO V34) */
+    /* JANELA FLUTUANTE DE ATUALIZAÇÃO (TOOLTIP) */
     .info-tooltip-container { position: relative; display: inline-block; cursor: pointer; margin-left: 5px; outline: none; }
     .info-icon { font-size: 1.1em; color: #12D0FF; transition: transform 0.2s; display: inline-block; }
     .info-tooltip-container:hover .info-icon { transform: scale(1.1); }
@@ -152,14 +152,14 @@
     </div>
     
     <div class="versao-info" style="text-align: center; font-size: 0.8em; color: #6c757d; margin-top: -15px; margin-bottom: 20px;">
-      Versão 83 | Tripla Base Externa e Eliminação de Preços Embutidos
+      Versão 83 | Fusão de Múltiplos JSONs e Blindagem de Insumos
       <span class="info-tooltip-container" tabindex="0">
         <span class="info-icon">ℹ️</span>
         <div class="info-tooltip-text">
           <strong style="color: #12D0FF;">Novidades da Versão 83:</strong><br>
-          - 🚫 <b>Fim dos Preços Embutidos:</b> Todos os valores estáticos foram apagados. O sistema agora depende 100% dos arquivos JSON para precificar, zerando itens não encontrados (foco em auditoria rigorosa).<br>
-          - 📦 <b>Busca Unificada:</b> O sistema lê simultaneamente SINPLAN, SINAPI Serviços e SINAPI Materiais. A busca manual agora pesquisa em todas as bases.<br>
-          - 📑 <b>Certificação de Datas:</b> Nota oficial adicionada às tabelas e memoriais comprovando as datas-base (Fev/2026 e Mar/2026) das planilhas utilizadas.
+          - 🧬 <b>Leitura Multi-Bases:</b> O sistema agora lê SINAPI, SINPLAN e Materiais simultaneamente e mescla tudo internamente.<br>
+          - 🚫 <b>Bloqueio Anti-Alucinação:</b> Insumos puros (aço, epóxi, graute) são estritamente proibidos de buscar textos em planilhas sintéticas, eliminando o erro do "Guarda-corpo" e "Máquina Cortadora".<br>
+          - 🧮 <b>Códigos Exatos Sabesp:</b> Tabela recalibrada com códigos [33], [130], [131], [3774] baseados nos arquivos fornecidos.
         </div>
       </span>
     </div>
@@ -228,9 +228,6 @@
       <h2 style="color: #12D0FF; border-bottom: 2px solid #eee; text-align: left; font-size: 1.3em; margin-top: 0;">3. Resumo Financeiro</h2>
       <div id="resumo-tela-subtotais"></div>
       <div style="text-align: right; font-size: 1.4em; color: #d9534f; font-weight: bold; margin-top: 10px;">TOTAL GLOBAL: <span id="valor-total-tela">R$ 0,00</span></div>
-      <div style="font-size: 8pt; margin-top: 15px; color: #555; text-align: right; border-top: 1px dashed #ccc; padding-top: 5px;">
-        * Preços atualizados pela Planilha SINAPI com preços de fevereiro 2026 e SINPLAN com preços de março de 2026.
-      </div>
     </div>
 
     <div class="secao-acao no-print" style="margin-top: 20px;">
@@ -265,8 +262,7 @@
             Companhia de Saneamento Básico do Estado de São Paulo - Sabesp<br>
             Divisão de Manutenção e Serviços de São José dos Campos | OVMS<br>
             Rua Euclides Miragaia, 126 | Centro | 12.245-820 | São José dos Campos - SP<br>
-            www.sabesp.com.br<br>
-            <span style="font-size: 7pt; color: #555;">* Preços atualizados pela Planilha SINAPI (Fev/2026) e SINPLAN (Mar/2026).</span>
+            www.sabesp.com.br
           </div>
         </div>
       </div>
