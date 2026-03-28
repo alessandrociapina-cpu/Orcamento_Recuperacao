@@ -74,7 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // =========================================================================
-  // ARQUITETURA DE DADOS (Matriz Analítica Validada)
+  // ARQUITETURA DE DADOS (Matriz Analítica Validada - Versão 85)
   // =========================================================================
   const ACABAMENTOS = {
       'none': { desc: 'Sem acabamento adicional', preco: 0, busca: '' },
@@ -105,7 +105,8 @@ document.addEventListener('DOMContentLoaded', () => {
               { desc: "Aço CA-50, Ø 8,0 mm, Vergalhão (Material puro)", unid: "kg", precoUnit: 6.55, busca: "FORCE_ACO", codigoBase: "33", tipoItem: "insumo", regra: { tipo: 'fator', valor: 0.95, arredondamento: '2casas' } },
               { desc: "Adesivo Estrutural à Base de Resina Epóxi, Pastoso", unid: "kg", precoUnit: 44.30, busca: "FORCE_EPOXI", codigoBase: "131", tipoItem: "insumo", regra: { tipo: 'fator', valor: 0.60, arredondamento: '2casas' } },
               { desc: "Argamassa Polimérica de Reparo Estrutural (Graute)", unid: "kg", precoUnit: 3.98, busca: "FORCE_GRAUTE", codigoBase: "130", tipoItem: "insumo", regra: { tipo: 'fator', valor: 3.0, arredondamento: '2casas' } },
-              { desc: "Lixa, disco de corte e brocas (Rateio/Desgaste)", unid: "un", precoUnit: 45.00, busca: "FORCE_DESGASTE", codigoBase: "3774", tipoItem: "insumo", regra: { tipo: 'fator', valor: 0.05, arredondamento: '2casas' } }
+              { desc: "Lixa, disco de corte e brocas (Rateio/Desgaste)", unid: "un", precoUnit: 45.00, busca: "FORCE_DESGASTE", codigoBase: "3774", tipoItem: "insumo", regra: { tipo: 'fator', valor: 0.05, arredondamento: '2casas' } },
+              { desc: "Chapisco e emboço para regularização (Localizado)", unid: "m²", precoUnit: 52.00, busca: "reboco argamassa", codigoBase: "87292", tipoItem: "servico", regra: { tipo: 'fator', valor: 0.5, arredondamento: '2casas' } }
           ]
       },
       TRINCA_ATIVA: {
@@ -115,7 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
           composicao: [
               { desc: "Mão de Obra - Pedreiro com Encargos Complementares", unid: "h", precoUnit: 35.87, busca: "pedreiro com encargos", codigoBase: "88309", tipoItem: "servico", regra: { tipo: 'fator', valor: 1.2, arredondamento: '2casas' } },
               { desc: "Tarugo de Polietileno Expandido (Fundo de junta)", unid: "m", precoUnit: 5.50, busca: "FORCE_TARUGO", codigoBase: "4033", tipoItem: "insumo", regra: { tipo: 'fator', valor: 1.05, arredondamento: '2casas' } },
-              { desc: "Selante Elástico Base Poliuretano (PU)", unid: "ml", precoUnit: 0.08, busca: "FORCE_PU", codigoBase: "142", tipoItem: "insumo", regra: { tipo: 'fator', valor: 300, arredondamento: '2casas' } },
+              { desc: "Selante Elástico Base Poliuretano (PU)", unid: "un", precoUnit: 35.00, busca: "FORCE_PU", codigoBase: "142", tipoItem: "insumo", regra: { tipo: 'fator', valor: 1.0, arredondamento: '2casas' } },
               { desc: "Tela de Fibra de Vidro ou Poliéster p/ trincas", unid: "m", precoUnit: 15.00, busca: "FORCE_TELA", codigoBase: "39474", tipoItem: "insumo", regra: { tipo: 'fator', valor: 1.05, arredondamento: '2casas' } },
               { desc: "Argamassa Polimérica (Base Coat do sanduíche)", unid: "kg", precoUnit: 3.98, busca: "FORCE_BASECOAT", codigoBase: "130", tipoItem: "insumo", regra: { tipo: 'fator', valor: 2.0, arredondamento: '2casas' } }
           ]
@@ -136,7 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
           unidadeBase: "m²", fatorArea: 1.0,
           composicao: [
               { desc: "Demolição profunda de revestimento contaminado", unid: "m²", precoUnit: 30.00, busca: "demolição revestimento", codigoBase: "97622", tipoItem: "servico", regra: { tipo: 'fator', valor: 1, arredondamento: '2casas' } },
-              { desc: "Hipoclorito de Sódio a 5% (Limpeza sanitizante)", unid: "L", precoUnit: 45.00, busca: "FORCE_HIPOCLORITO", codigoBase: "11566", tipoItem: "insumo", regra: { tipo: 'fator', valor: 0.5, arredondamento: '2casas' } },
+              { desc: "Hipoclorito de Sódio a 5% (Lavagem sanitizante)", unid: "L", precoUnit: 45.00, busca: "FORCE_HIPOCLORITO", codigoBase: "11566", tipoItem: "insumo", regra: { tipo: 'fator', valor: 0.5, arredondamento: '2casas' } },
               { desc: "Chapisco com cimento resistente a sulfatos (RS)", unid: "m²", precoUnit: 18.00, busca: "chapisco", codigoBase: "87878", tipoItem: "servico", regra: { tipo: 'fator', valor: 1, arredondamento: '2casas' } },
               { desc: "Reboco estrutural com cimento RS", unid: "m²", precoUnit: 82.00, busca: "reboco cimento", codigoBase: "87292", tipoItem: "servico", regra: { tipo: 'fator', valor: 1, arredondamento: '2casas' } }
           ]
@@ -147,14 +148,14 @@ document.addEventListener('DOMContentLoaded', () => {
           unidadeBase: "m²", fatorArea: 1.0,
           composicao: [
               { desc: "Apicoamento/escarificação mecânica do concreto", unid: "m²", precoUnit: 110.00, busca: "apicoamento", codigoBase: "97644", tipoItem: "servico", regra: { tipo: 'fator', valor: 1, arredondamento: '2casas' } },
-              { desc: "Primer rico em zinco (Tratamento do aço)", unid: "L", precoUnit: 145.00, busca: "FORCE_PRIMER", codigoBase: "100722", tipoItem: "insumo", regra: { tipo: 'fator', valor: 0.3, arredondamento: '2casas' } },
+              { desc: "Pintura com primer rico em zinco (Tratamento do aço)", unid: "m²", precoUnit: 145.00, busca: "primer zinco", codigoBase: "100722", tipoItem: "servico", regra: { tipo: 'fator', valor: 1.0, arredondamento: '2casas' } },
               { desc: "Adesivo Estrutural Epóxi (Ponte de Aderência)", unid: "kg", precoUnit: 44.30, busca: "FORCE_EPOXI", codigoBase: "131", tipoItem: "insumo", regra: { tipo: 'fator', valor: 0.8, arredondamento: '2casas' } },
               { desc: "Recomposição com graute tixotrópico estrutural", unid: "m²", precoUnit: 190.00, busca: "graute tixotropico", codigoBase: "100724", tipoItem: "servico", regra: { tipo: 'fator', valor: 1, arredondamento: '2casas' } }
           ]
       },
       RECALQUE_ESTACA_MEGA: {
           nome: "Recalque de Fundação (Reforço com Estaca Mega)",
-          memorial: "1. Mobilização de equipamentos e monitoramento da estrutura.\n2. Escavação manual e escoramento para abertura de poço.\n3. Cravação de estacas mega de concreto por macacagem (comprimento estimado, a ser confirmado in loco por leitura de manômetro/nega).\n4. Encunhamento e concretagem do bloco de transição com cunhas metálicas.\n5. Recomposição arquitetônica e remoção de entulho.",
+          memorial: "1. Mobilização de equipamentos e monitoramento da estrutura.\n2. Escavação manual e escoramento para abertura de poço.\n3. Cravação de estacas mega de concreto por macacagem (comprimento estimado, a ser confirmado in loco por leitura de manômetro/nega).\n4. Encunhamento e concretagem do bloco de transição com cunhas metálicas.\n5. Remoção de entulho e alocação de caçamba.",
           unidadeBase: "un", fatorArea: 1.0, 
           composicao: [
               { desc: "Mobilização de equipamento leve (Macaco Hidráulico)", unid: "un", precoUnit: 350.00, busca: "FORCE_MOBILIZACAO", codigoBase: "MOB-01", tipoItem: "verba", regra: { tipo: 'fator', valor: 1, minimo: 1, arredondamento: 'ceil' } },
@@ -176,9 +177,9 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   // =========================================================================
-  // SALVAMENTO E CARREGAMENTO DE PROJETO (CHAVE FORÇADA v84)
+  // SALVAMENTO E CARREGAMENTO DE PROJETO (CHAVE FORÇADA v85)
   // =========================================================================
-  const STORAGE_KEY = 'projetoPatologiasSabesp_v84';
+  const STORAGE_KEY = 'projetoPatologiasSabesp_v85';
   let timeoutAutoSave;
   
   function autoSalvar() {
@@ -350,6 +351,7 @@ document.addEventListener('DOMContentLoaded', () => {
           formulaTxt += ` (Mínimo adotado: ${c.regra.minimo})`;
       }
 
+      // Motor de Busca Seguro com Trava Anti-Alucinação para Insumos
       let preco = c.precoUnit;
       let desc = c.desc;
       let fontePreco = "Tabela Interna (Fallback)";
@@ -362,7 +364,8 @@ document.addEventListener('DOMContentLoaded', () => {
               s = baseSinapi.find(i => getSinapiCodigo(i) == c.codigoBase);
           }
           
-          // Busca por texto bloqueada para insumos na v84
+          // Se não achar por código, e NÃO FOR INSUMO, procura por texto.
+          // Insumos estão travados para não buscarem textos aleatórios.
           if (!s && c.tipoItem !== 'insumo') {
               const termoNorm = normalizarTexto(c.busca);
               s = baseSinapi.find(i => normalizarTexto(getSinapiDescricao(i)).includes(termoNorm));
@@ -818,206 +821,3 @@ document.addEventListener('DOMContentLoaded', () => {
           img.src = historicoEdicao[historicoEdicao.length - 1];
       }
   };
-  document.getElementById('btnFecharModal').onclick = () => document.getElementById('modalEditor').classList.add('modal-oculto');
-
-  // --- CROPPER ---
-  window.abrirCrop = (idx) => {
-      fotoAtualCropIndex = idx;
-      const imgEl = document.getElementById('imgCrop');
-      imgEl.src = fotosSelecionadas[idx].edited || fotosSelecionadas[idx].preview;
-      document.getElementById('modalCrop').classList.remove('modal-oculto');
-      if(cropperInstancia) cropperInstancia.destroy();
-      imgEl.onload = () => { cropperInstancia = new Cropper(imgEl, { viewMode: 1, autoCropArea: 1, responsive: true }); };
-  };
-  document.getElementById('btnRotateL').onclick = () => { if(cropperInstancia) cropperInstancia.rotate(-90); };
-  document.getElementById('btnRotateR').onclick = () => { if(cropperInstancia) cropperInstancia.rotate(90); };
-  document.getElementById('btnCropLivre').onclick = () => { if(cropperInstancia) cropperInstancia.setAspectRatio(NaN); };
-  document.getElementById('btnCrop43').onclick = () => { if(cropperInstancia) cropperInstancia.setAspectRatio(4/3); };
-  
-  document.getElementById('btnAplicarCrop').onclick = () => {
-      if(cropperInstancia) {
-          fotosSelecionadas[fotoAtualCropIndex].edited = cropperInstancia.getCroppedCanvas({ imageSmoothingQuality: 'high' }).toDataURL('image/jpeg', 0.85);
-          renderizarInterface();
-          document.getElementById('modalCrop').classList.add('modal-oculto');
-          cropperInstancia.destroy(); cropperInstancia = null;
-          autoSalvar();
-      }
-  };
-  document.getElementById('btnFecharCrop').onclick = () => { 
-      document.getElementById('modalCrop').classList.add('modal-oculto'); 
-      if(cropperInstancia){ cropperInstancia.destroy(); cropperInstancia = null; } 
-  };
-
-  // --- ASSINATURAS ---
-  document.getElementById('incluirAssinatura').addEventListener('change', function() {
-    document.getElementById('btnAssinaturaLabel').style.display = this.checked ? 'inline-block' : 'none';
-    if(!this.checked) assinaturaBase64 = null;
-    autoSalvar();
-  });
-  document.getElementById('imagemAssinatura').addEventListener('change', function(e) {
-    if (e.target.files[0]) {
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        assinaturaBase64 = ev.target.result;
-        document.getElementById('assinaturaStatus').style.display = 'inline-block';
-        document.getElementById('btnRemoverAssinatura').style.display = 'inline-block';
-        autoSalvar();
-      };
-      reader.readAsDataURL(e.target.files[0]);
-    }
-  });
-  document.getElementById('btnRemoverAssinatura').addEventListener('click', function() {
-    assinaturaBase64 = null;
-    document.getElementById('assinaturaStatus').style.display = 'none';
-    this.style.display = 'none';
-    document.getElementById('imagemAssinatura').value = ''; 
-    autoSalvar();
-  });
-
-  // --- GERAÇÃO DO PDF ---
-  btnGerarPDF.addEventListener('click', () => {
-    const local = document.getElementById('localVistoria').value || 'Não informado';
-    let dataF = '___/___/_____';
-    const valData = document.getElementById('dataVistoria').value;
-    if(valData) {
-        const partes = valData.split('-');
-        dataF = `${partes[2]}/${partes[1]}/${partes[0]}`;
-    }
-    const hora = document.getElementById('horaVistoria').value || '--:--';
-    const nomeFiscal = document.getElementById('nomeFiscal').value || 'Nome do Técnico';
-    const cargoFiscal = document.getElementById('cargoFiscal').value || 'Cargo não informado';
-    const taxaBdi = parseFloat(inputBDI.value) || 0;
-    const justificativaBdi = document.getElementById('justificativaBdi').value || 'Padrão da Base de Custos';
-
-    document.getElementById('cabecalho-relatorio').innerHTML = `
-      <table style=\"width: 100%; border-collapse: collapse; margin-bottom: 2mm;\">
-        <tr>
-          <td style=\"width: 25mm;\"></td> 
-          <td style=\"text-align: center; vertical-align: middle;\">
-            <div style=\"font-family: Tahoma, Arial, sans-serif; font-size: 10pt; font-weight: bold; color: #12D0FF; text-transform: uppercase;\">COMPANHIA DE SANEAMENTO BÁSICO DO ESTADO DE SÃO PAULO</div>
-            <div style=\"font-family: Tahoma, Arial, sans-serif; font-size: 15pt; font-weight: bold; color: #12D0FF; text-transform: uppercase; margin-top: 2px;\">ORÇAMENTO ESTIMATIVO DE RECUPERAÇÃO DE PATOLOGIAS</div>
-          </td>
-          <td style=\"width: 25mm; text-align: right; vertical-align: middle;\"><img src=\"sabesp-logo.png\" style=\"max-height: 18mm;\"></td>
-        </tr>
-      </table>
-      <div style=\"border-top: 2px solid #12D0FF; margin-bottom: 4mm;\"></div>
-      <table style=\"width: 100%; border-collapse: collapse; border: 1px solid #12D0FF; border-radius: 6px; margin-bottom: 6mm; font-family: Tahoma, Arial, sans-serif; font-size: 9.5pt; color: #000;\">
-        <tr><td style=\"padding: 6px; border-bottom: 1px solid #eee;\"><strong>Local da Obra/Perícia:</strong> ${local}</td><td style=\"padding: 6px; border-bottom: 1px solid #eee; border-left: 1px solid #eee;\"><strong>Data:</strong> ${dataF} &nbsp;&nbsp;|&nbsp;&nbsp; <strong>Hora:</strong> ${hora}</td></tr>
-        <tr><td style=\"padding: 6px;\"><strong>Responsável Técnico:</strong> ${nomeFiscal}</td><td style=\"padding: 6px; border-left: 1px solid #eee;\"><strong>Cargo:</strong> ${cargoFiscal}</td></tr>
-      </table>
-    `;
-
-    const corpo = document.getElementById('corpo-relatorio'); corpo.innerHTML = '';
-    let somaDireta = 0; let memorialTxt = "";
-    let htmlResumoTotal = "";
-    
-    fotosSelecionadas.forEach((f, idx) => {
-        const medTxt = f.tipo ? ` - ${f.medidaPrincipal} ${TIPOLOGIAS[f.tipo].unidadeBase}` : '';
-        let sub = 0; let linhas = "";
-        
-        let memHtml = `<table style="width: 100%; border-collapse: collapse; margin-top: 5px; font-size: 9pt; font-family: Tahoma, Arial, sans-serif; border: 1px solid #aaa;">
-            <tr style="background:#f9f9f9;"><th style="border: 1px solid #aaa; padding:2px; text-align:left;">Serviço Base (Código/Ref)</th><th style="border: 1px solid #aaa; padding:2px;">Cálculo Adotado</th><th style="border: 1px solid #aaa; padding:2px;">Subtotal</th></tr>`;
-
-        const itensRender = [...(f.itensAutomaticos || []).filter(i => !i.removido), ...(f.itensManuais || [])];
-
-        itensRender.forEach(it => { 
-            let t = it.qtdAdotada * it.preco; sub += t; 
-            
-            linhas += `<tr>
-                <td style="border:1px solid #aaa;"><span style="color:#12D0FF; font-weight:bold;">[${it.codigoEfetivo}]</span> ${it.desc}</td>
-                <td style="text-align:center; border:1px solid #aaa;">${it.unid}</td>
-                <td style="text-align:center; border:1px solid #aaa;">${it.qtdAdotada}</td>
-                <td style="text-align:right; border:1px solid #aaa;">R$ ${it.preco.toFixed(2).replace('.',',')}</td>
-                <td style="text-align:right; font-weight:bold; border:1px solid #aaa;">R$ ${t.toFixed(2).replace('.',',')}</td>
-            </tr>`;
-            
-            memHtml += `<tr>
-                <td style="border: 1px solid #aaa; padding:2px;">[${it.codigoEfetivo}] ${it.desc}</td>
-                <td style="border: 1px solid #aaa; padding:2px; text-align:center; font-style:italic;">${it.formula} = ${it.qtdAdotada} ${it.unid}</td>
-                <td style="border: 1px solid #aaa; padding:2px; text-align:right; font-weight:bold;">R$ ${t.toFixed(2).replace('.',',')}</td>
-            </tr>`;
-        });
-        
-        somaDireta += sub;
-        memHtml += `</table>`;
-
-        linhas += `<tr style="background:#f0f0f0;"><td colspan="4" align="right" style="font-weight:bold; border: 1px solid #aaa; padding:3px;">Subtotal Direto:</td><td style="font-weight:bold; text-align:right; border: 1px solid #aaa; padding:3px;">R$ ${sub.toFixed(2).replace('.',',')}</td></tr>`;
-
-        htmlResumoTotal += `
-          <tr style="border-bottom: 1px solid #eee;">
-            <td style="padding: 4px 0;">Patologia 0${idx + 1} - ${f.tipo ? TIPOLOGIAS[f.tipo].nome : 'Não definida'}</td>
-            <td style="padding: 4px 0; text-align: right;">R$ ${sub.toFixed(2).replace('.',',')}</td>
-          </tr>
-        `;
-
-        const legendaLinha = f.legenda ? `<tr><td colspan="5" style="border: 1px solid #aaa; padding: 4px; background:#fefefe; font-style:italic; font-size:8pt;"><strong>Legenda / Obs:</strong> ${f.legenda}</td></tr>` : '';
-
-        corpo.innerHTML += `<div class=\"bloco-patologia\"><h4 style="font-family: Tahoma, Arial, sans-serif; font-size: 10pt; border-bottom:1px solid #ccc; padding-bottom:1px; margin-bottom:5px;">Patologia 0${idx+1} - ${f.tipo ? TIPOLOGIAS[f.tipo].nome : ''}${medTxt}</h4>
-          <img src=\"${f.edited || f.preview}\" class=\"imagem-patologia-print\">
-          <table class=\"tabela-pdf\">
-            <thead><tr><th>Serviço da Composição Orçamentária</th><th>Und</th><th>Qtd</th><th>V.Unit</th><th>Total</th></tr></thead>
-            <tbody>
-              ${legendaLinha}
-              ${linhas}
-            </tbody>
-          </table>
-        </div>`;
-        
-        if(f.tipo) {
-            memorialTxt += `
-            <div style="margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px dashed #ccc; page-break-inside: avoid;">
-                <h5 style="font-family: Tahoma, Arial, sans-serif; font-size: 10pt; margin-bottom:1mm; margin-top:0;">Patologia 0${idx+1} - ${TIPOLOGIAS[f.tipo].nome}${medTxt}</h5>
-                <p style="font-family: Tahoma, Arial, sans-serif; text-align:justify; font-size:9.5pt; margin-top:0; white-space: pre-wrap;">${TIPOLOGIAS[f.tipo].memorial}</p>
-                ${memHtml}
-            </div>`;
-        } else {
-            memorialTxt += `
-            <div style="margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px dashed #ccc; page-break-inside: avoid;">
-                <h5 style="font-family: Tahoma, Arial, sans-serif; font-size: 10pt; margin-bottom:1mm; margin-top:0;">Patologia 0${idx+1}</h5>
-                <p style="font-family: Tahoma, Arial, sans-serif; text-align:justify; font-size:9.5pt; margin-top:0; color:#d9534f;">Nenhuma tipologia técnica ou composição definida para esta imagem.</p>
-            </div>`;
-        }
-    });
-
-    let bdiVal = somaDireta * (taxaBdi / 100);
-    
-    document.getElementById('bloco-total-geral').innerHTML = `
-        <h4 style="font-family: Tahoma, Arial, sans-serif; font-size: 11pt; border-bottom: 1px solid #ccc; padding-bottom:2px; margin-top: 5px;">Resumo Financeiro Global</h4>
-        <table style="width: 100%; border-collapse: collapse; font-family: Tahoma, Arial, sans-serif; font-size: 10pt;">
-            ${htmlResumoTotal}
-            <tr style="border-top: 1px solid #ccc; background:#f9f9f9;"><td style="padding:4px;"><strong>Soma dos Custos Diretos:</strong></td><td style="text-align:right; font-weight:bold;">R$ ${somaDireta.toFixed(2).replace('.',',')}</td></tr>
-            <tr style="border-bottom: 1px solid #ccc;">
-                <td style="padding:4px; color:#12D0FF;">
-                    <strong>BDI Aplicado (${taxaBdi}%):</strong><br>
-                    <span style="font-size:8pt; font-weight:normal; color:#555;">Critério de Adoção: ${justificativaBdi}</span>
-                </td>
-                <td style="text-align:right; vertical-align:top; font-weight:bold; color:#12D0FF;">+ R$ ${bdiVal.toFixed(2).replace('.',',')}</td>
-            </tr>
-            <tr><td style="padding:4px; font-size:12pt; font-weight:bold;">TOTAL ESTIMADO:</td><td style="text-align:right; font-size:12pt; font-weight:bold; color:#d9534f;">R$ ${(somaDireta+bdiVal).toFixed(2).replace('.',',')}</td></tr>
-        </table>`;
-    
-    document.getElementById('texto-memorial-impresso').innerHTML = memorialTxt;
-    
-    if (document.getElementById('incluirAssinatura').checked) {
-        const nomeFiscal = document.getElementById('nomeFiscal').value || 'Nome do Técnico';
-        const cargoFiscal = document.getElementById('cargoFiscal').value || 'Cargo não informado';
-        let imgAssin = assinaturaBase64 ? `<img src="${assinaturaBase64}" class="assinatura-imagem-limpa">` : `<div style="height: 15mm; width: 100%; z-index:-1; position:relative;"></div>`; 
-        
-        document.getElementById('texto-memorial-impresso').innerHTML += `
-           <div class="assinaturas-container" style="page-break-inside: avoid;">
-              <div class="bloco-assinatura">
-                  ${imgAssin}
-                  <div class="linha-assinatura"></div>
-                  <strong>${nomeFiscal}</strong>
-                  <span>${cargoFiscal}</span>
-              </div>
-           </div>`;
-    }
-
-    const rel = document.getElementById('area-relatorio'); 
-    rel.style.display = 'block';
-    
-    window.onafterprint = () => { rel.style.display = 'none'; };
-    setTimeout(() => { window.print(); setTimeout(() => { rel.style.display = 'none'; }, 2000); }, 300);
-  });
-});
